@@ -216,7 +216,9 @@ describe("imposter flip-card type", () => {
     expect(appCss).toMatch(/\.card-role\s*\{[^}]*word-break:\s*break-word/);
     expect(appCss).toMatch(/\.card-hint-label\s*\{[^}]*font-weight:\s*400/);
     expect(appCss).toMatch(/\.card-hint-word\s*\{[^}]*clamp\(1\.25rem,\s*5vw,\s*1\.8rem\)/);
-    expect(appCss).toMatch(/\.card-face\.front\.is-imposter\s*\{[^}]*#d1263d/);
+    expect(appCss).toMatch(
+      /\.card-face\.front\.is-imposter\s*\{[^}]*background:\s*#d1263d/,
+    );
     expect(appCss).toMatch(/\.card-kicker\s*\{[^}]*font-weight:\s*700/);
     expect(appCss).toMatch(/\.card-word\s*\{[^}]*clamp\(2rem,\s*9vw,\s*3rem\)/);
     expect(appCss).not.toMatch(/\.card-word,\s*\n?\s*\.card-hint-word/);
