@@ -32,11 +32,10 @@ function confirmModal(): string {
   `;
 }
 
-function switchControl(id: string, checked: boolean, action: string): string {
+function switchControl(id: string, checked: boolean, action: string, label: string): string {
   return `
     <label class="switch">
-      <span class="sr-only">${escapeHtml(id)}</span>
-      <input id="${escapeHtml(id)}" type="checkbox" data-action="${escapeHtml(action)}" ${checked ? "checked" : ""} />
+      <input id="${escapeHtml(id)}" type="checkbox" data-action="${escapeHtml(action)}" aria-label="${escapeHtml(label)}" ${checked ? "checked" : ""} />
       <span></span>
     </label>
   `;
@@ -123,7 +122,7 @@ function setupView(
           </div>
           <div class="toggle-row">
             <span>Auto</span>
-            ${switchControl("auto-imposters", state.setup.autoImposters, "toggle-auto")}
+            ${switchControl("auto-imposters", state.setup.autoImposters, "toggle-auto", "Auto")}
           </div>
         </div>
       </section>
@@ -143,11 +142,11 @@ function setupView(
         <div class="accordion-body">
           <div class="toggle-row">
             <span>Imposter hints</span>
-            ${switchControl("hints", state.setup.hintsEnabled, "toggle-hints")}
+            ${switchControl("hints", state.setup.hintsEnabled, "toggle-hints", "Imposter hints")}
           </div>
           <div class="toggle-row">
             <span>Troll mode</span>
-            ${switchControl("troll", state.setup.trollEnabled, "toggle-troll")}
+            ${switchControl("troll", state.setup.trollEnabled, "toggle-troll", "Troll mode")}
           </div>
           ${
             state.setup.trollEnabled

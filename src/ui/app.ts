@@ -7,25 +7,72 @@ function isTrollRule(value: string): value is TrollRuleId {
   return (TROLL_RULES as string[]).includes(value);
 }
 
-function restoreFocus(root: HTMLElement): void {
-  const active = document.activeElement;
-  if (!(active instanceof HTMLElement) || !root.contains(active)) return;
-  const id = active.id;
-  const start = active instanceof HTMLInputElement ? active.selectionStart : null;
-  const end = active instanceof HTMLInputElement ? active.selectionEnd : null;
-  const restored = id ? root.querySelector(`#${CSS.escape(id)}`) : null;
-  if (restored instanceof HTMLInputElement) {
-    restored.focus();
-    if (start != null && end != null) restored.setSelectionRange(start, end);
-  } else if (restored instanceof HTMLElement) {
-    restored.focus();
+export type FocusSnapshot = {
+  id: string;
+  start: number | null;
+  end: number | null;
+};
+
+export type ActiveLike = {
+  id?: string;
+  selectionStart?: number | null;
+  selectionEnd?: number | null;
+};
+
+export interface RenderRoot {
+  innerHTML: string;
+  contains(node: object): boolean;
+  querySelector(selectors: string): unknown;
+}
+
+type RestoredLike = {
+  focus(options?: { preventScroll?: boolean }): void;
+  setSelectionRange?(start: number, end: number): void;
+};
+
+function escapeCssId(id: string): string {
+  if (typeof CSS !== "undefined" && typeof CSS.escape === "function") return CSS.escape(id);
+  return id.replace(/[^a-zA-Z0-9_-]/g, (ch) => `\\${ch}`);
+}
+
+function isRestored(value: unknown): value is RestoredLike {
+  return typeof value === "object" && value !== null && typeof (value as RestoredLike).focus === "function";
+}
+
+export function snapshotFocus(root: RenderRoot, active: ActiveLike | null): FocusSnapshot | null {
+  if (!active || typeof active.id !== "string" || active.id.length === 0) return null;
+  if (!root.contains(active)) return null;
+  return {
+    id: active.id,
+    start: typeof active.selectionStart === "number" ? active.selectionStart : null,
+    end: typeof active.selectionEnd === "number" ? active.selectionEnd : null,
+  };
+}
+
+export function applyFocusSnapshot(root: RenderRoot, snapshot: FocusSnapshot | null): void {
+  if (!snapshot) return;
+  const restored = root.querySelector(`#${escapeCssId(snapshot.id)}`);
+  if (!isRestored(restored)) return;
+  restored.focus({ preventScroll: true });
+  if (snapshot.start != null && snapshot.end != null && typeof restored.setSelectionRange === "function") {
+    restored.setSelectionRange(snapshot.start, snapshot.end);
   }
 }
 
+export function paint(
+  root: HTMLElement | RenderRoot,
+  game: GameController,
+  active: ActiveLike | null,
+): void {
+  const host = root as RenderRoot;
+  const snapshot = snapshotFocus(host, active);
+  root.innerHTML = renderApp(game);
+  applyFocusSnapshot(host, snapshot);
+}
+
 export function mount(root: HTMLElement, game: GameController): void {
-  const paint = (): void => {
-    root.innerHTML = renderApp(game);
-    restoreFocus(root);
+  const redraw = (): void => {
+    paint(root, game, document.activeElement);
   };
 
   root.addEventListener("input", (event) => {
@@ -34,7 +81,7 @@ export function mount(root: HTMLElement, game: GameController): void {
     if (target.dataset.action === "name") {
       const index = Number(target.dataset.index);
       if (Number.isInteger(index)) game.setName(index, target.value);
-      paint();
+      redraw();
     }
   });
 
@@ -51,7 +98,7 @@ export function mount(root: HTMLElement, game: GameController): void {
     if (action === "troll-rule" && target.dataset.id && isTrollRule(target.dataset.id)) {
       game.setTrollRule(target.dataset.id, target.checked);
     }
-    paint();
+    redraw();
   });
 
   root.addEventListener("click", (event) => {
@@ -81,8 +128,8 @@ export function mount(root: HTMLElement, game: GameController): void {
     if (action === "quit") game.requestQuit();
     if (action === "cancel-quit") game.cancelQuit();
     if (action === "confirm-quit") game.confirmQuit();
-    paint();
+    redraw();
   });
 
-  paint();
+  redraw();
 }

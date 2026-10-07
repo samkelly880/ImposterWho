@@ -1,7 +1,15 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "../testkit.ts";
 import { GameController } from "../controller.ts";
 import { memoryStorage } from "../storage.ts";
 import { renderApp } from "./view.ts";
+
+const appCss = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), "../styles/app.css"),
+  "utf8",
+);
 
 function game(): GameController {
   return new GameController({ storage: memoryStorage(), random: () => 0 });
@@ -34,6 +42,17 @@ describe("setup markup", () => {
     expect(html).toContain("No Imposters");
     expect(html).toContain("Reverse");
   });
+
+  it("names mode switches with their visible labels", () => {
+    const html = renderApp(game());
+    expect(html).toContain('aria-label="Auto"');
+    expect(html).toContain('aria-label="Imposter hints"');
+    expect(html).toContain('aria-label="Troll mode"');
+    expect(html).not.toContain('aria-label="auto-imposters"');
+    expect(html).not.toContain("sr-only\">auto-imposters");
+    expect(html).not.toContain("sr-only\">hints");
+    expect(html).not.toContain("sr-only\">troll");
+  });
 });
 
 describe("flip markup", () => {
@@ -54,6 +73,11 @@ describe("flip markup", () => {
     } else {
       expect(html).toContain("The word is");
     }
+  });
+
+  it("hides the secret face in CSS until the card is flipped", () => {
+    expect(appCss).toMatch(/\.card:not\(\.is-flipped\)\s+\.card-face\.front\s*\{[^}]*visibility:\s*hidden/);
+    expect(appCss).toMatch(/\.card-face\.front\s*\{[^}]*translateZ/);
   });
 
   it("enables Next after flip and hide", () => {

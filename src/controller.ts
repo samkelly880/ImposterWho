@@ -1,4 +1,4 @@
-import { defaultAppState, enableTroll } from "./defaults.ts";
+import { defaultAppState } from "./defaults.ts";
 import { bumpImposterCount, setAutoImposters, syncImposterCount } from "./imposters.ts";
 import { activeNames } from "./names.ts";
 import { pack } from "./pack.ts";
@@ -93,7 +93,7 @@ export class GameController {
   }
 
   setTroll(on: boolean): void {
-    this.updateSetup((setup) => (on ? enableTroll(setup) : { ...setup, trollEnabled: false }));
+    this.updateSetup((setup) => ({ ...setup, trollEnabled: on }));
   }
 
   setTrollRule(id: keyof SetupState["trollRules"], on: boolean): void {

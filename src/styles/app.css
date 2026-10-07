@@ -355,6 +355,7 @@ input[type="checkbox"] {
   box-shadow: var(--shadow);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  transform: translateZ(1px);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -365,7 +366,11 @@ input[type="checkbox"] {
 }
 
 .card-face.front {
-  transform: rotateY(180deg);
+  transform: rotateY(180deg) translateZ(1px);
+}
+
+.card:not(.is-flipped) .card-face.front {
+  visibility: hidden;
 }
 
 .card-name {

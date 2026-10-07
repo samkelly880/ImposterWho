@@ -34,14 +34,4 @@ export function defaultAppState(pack: WordPack): AppState {
   };
 }
 
-export function enableTroll(setup: SetupState): SetupState {
-  return {
-    ...setup,
-    trollEnabled: true,
-    trollRules: {
-      allImposters: true,
-      noImposters: true,
-      reverse: true,
-    },
-  };
-}
+

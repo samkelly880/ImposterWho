@@ -71,6 +71,34 @@ describe("GameController flow", () => {
     expect(game.state.deck.usedByCategory.food?.length).toBeGreaterThan(1);
   });
 
+  it("keeps troll sub-rules when Troll is turned off and on again", () => {
+    const game = seededController();
+    game.setTroll(true);
+    game.setTrollRule("reverse", false);
+    game.setTrollRule("allImposters", false);
+    game.setTroll(false);
+    expect(game.state.setup.trollEnabled).toBe(false);
+    expect(game.state.setup.trollRules.reverse).toBe(false);
+    game.setTroll(true);
+    expect(game.state.setup.trollEnabled).toBe(true);
+    expect(game.state.setup.trollRules.reverse).toBe(false);
+    expect(game.state.setup.trollRules.allImposters).toBe(false);
+    expect(game.state.setup.trollRules.noImposters).toBe(true);
+  });
+
+  it("persists disarmed troll sub-rules after Troll is re-enabled", () => {
+    const storage = memoryStorage();
+    const game = new GameController({ storage, random: () => 0 });
+    game.setTroll(true);
+    game.setTrollRule("allImposters", false);
+    game.setTroll(false);
+    game.setTroll(true);
+    const again = new GameController({ storage, random: () => 0 });
+    expect(again.state.setup.trollEnabled).toBe(true);
+    expect(again.state.setup.trollRules.allImposters).toBe(false);
+    expect(again.state.setup.trollRules.reverse).toBe(true);
+  });
+
   it("restores setup from storage", () => {
     const storage = memoryStorage();
     const game = new GameController({ storage, random: () => 0 });
