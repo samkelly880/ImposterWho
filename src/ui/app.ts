@@ -2,7 +2,7 @@ import { GameController } from "../controller.ts";
 import type { TrollRuleId } from "../types.ts";
 import { TROLL_RULES } from "../types.ts";
 import { fitLineElements } from "./fit-line.ts";
-import { renderApp } from "./view.ts";
+import { confirmModal, renderApp } from "./view.ts";
 
 function isTrollRule(value: string): value is TrollRuleId {
   return (TROLL_RULES as string[]).includes(value);
@@ -120,6 +120,41 @@ export function paint(
   fitLineElements(root);
 }
 
+export function ejectSceneKey(game: GameController): string | null {
+  const eject = game.state.play.eject;
+  if (game.state.screen !== "eject" || !eject) return null;
+  return `${eject.index}:${eject.phase}`;
+}
+
+export function shouldPreserveEjectScene(
+  previousKey: string | null,
+  nextKey: string | null,
+): boolean {
+  return previousKey !== null && previousKey === nextKey;
+}
+
+export function syncQuitOverlay(
+  root: HTMLElement,
+  game: GameController,
+  active: ActiveLike | null,
+): void {
+  const host = root as HTMLElement & RenderRoot;
+  const snapshot = snapshotFocus(host, active);
+  const section = root.querySelector("section.screen");
+  if (section instanceof HTMLElement) {
+    if (game.state.confirmQuit) section.setAttribute("inert", "");
+    else section.removeAttribute("inert");
+  }
+  const existing = root.querySelector(".modal");
+  if (game.state.confirmQuit && !existing) {
+    root.insertAdjacentHTML("beforeend", confirmModal());
+  } else if (!game.state.confirmQuit && existing) {
+    existing.remove();
+  }
+  applyFocusSnapshot(host, snapshot);
+  focusQuitDialog(host, snapshot);
+}
+
 function prefersReducedMotion(): boolean {
   return (
     typeof globalThis.matchMedia === "function" &&
@@ -129,6 +164,7 @@ function prefersReducedMotion(): boolean {
 
 export function mount(root: HTMLElement, game: GameController): void {
   let ejectTimer: ReturnType<typeof globalThis.setTimeout> | undefined;
+  let lastEjectKey: string | null = null;
   const clearEjectTimer = (): void => {
     if (ejectTimer !== undefined) {
       globalThis.clearTimeout(ejectTimer);
@@ -136,7 +172,10 @@ export function mount(root: HTMLElement, game: GameController): void {
     }
   };
   const armEject = (): void => {
+    const key = ejectSceneKey(game);
+    if (key === lastEjectKey) return;
     clearEjectTimer();
+    lastEjectKey = key;
     const eject = game.state.play.eject;
     if (game.state.screen !== "eject" || !eject) return;
     const phase = eject.phase;
@@ -166,6 +205,11 @@ export function mount(root: HTMLElement, game: GameController): void {
     }
   };
   const redraw = (): void => {
+    const key = ejectSceneKey(game);
+    if (shouldPreserveEjectScene(lastEjectKey, key) && root.querySelector(".eject-card")) {
+      syncQuitOverlay(root, game, document.activeElement);
+      return;
+    }
     paint(root, game, document.activeElement);
     armEject();
   };

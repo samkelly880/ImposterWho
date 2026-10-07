@@ -466,7 +466,9 @@ describe("Last Word markup", () => {
     const voters = g.state.play.aliveIndexes.length;
     for (let i = 0; i < voters; i++) {
       const voter = g.state.play.aliveIndexes[g.state.play.vote!.voterIndex]!;
+      g.tapCard();
       g.selectVoteTarget(voter === target ? fallback : target);
+      g.tapCard();
       g.nextPlayer();
     }
   }
@@ -486,11 +488,17 @@ describe("Last Word markup", () => {
   it("prompts Tied. Tap to vote. and lists only tied names", () => {
     const g = lastWordGame();
     g.openVote();
+    g.tapCard();
     g.selectVoteTarget(1);
+    g.tapCard();
     g.nextPlayer();
+    g.tapCard();
     g.selectVoteTarget(2);
+    g.tapCard();
     g.nextPlayer();
+    g.tapCard();
     g.selectVoteTarget(0);
+    g.tapCard();
     g.nextPlayer();
     const html = renderApp(g);
     expect(html).toContain("Tied. Tap to vote.");
@@ -499,6 +507,22 @@ describe("Last Word markup", () => {
     expect(html).toContain("Bob");
     expect(html).toContain("Cara");
     expect(html).toMatch(/data-action="next"[^>]*disabled/);
+  });
+
+  it("enables Next only after a pick is hidden", () => {
+    const g = lastWordGame();
+    g.openVote();
+    expect(renderApp(g)).toContain("Flip your card, pick someone, then hide it to continue.");
+    expect(renderApp(g)).toContain('aria-disabled="true"');
+    g.selectVoteTarget(1);
+    expect(renderApp(g)).toContain('aria-disabled="true"');
+    g.tapCard();
+    expect(renderApp(g)).toContain('aria-disabled="true"');
+    expect(renderApp(g)).toContain("Flip your card, pick someone, then hide it to continue.");
+    g.tapCard();
+    const html = renderApp(g);
+    expect(html).toContain('aria-disabled="false"');
+    expect(html).toContain("Pass the device to the next player.");
   });
 
   it("shows kick-out copy for an imposter and a civilian", () => {

@@ -27,7 +27,7 @@ function quitButton(): string {
   return `<button class="quit" type="button" data-action="quit" aria-label="End this round">×</button>`;
 }
 
-function confirmModal(): string {
+export function confirmModal(): string {
   return `
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="quit-title">
       <div class="dialog">
@@ -349,7 +349,7 @@ function voteView(state: AppState): string {
   const voter = round.assignments[voterAssignmentIndex];
   if (!voter) return "";
   const skin = skinForSlot(voterAssignmentIndex);
-  const nextOn = vote.selectedIndex !== null;
+  const nextOn = vote.selectedIndex !== null && canPressNext(vote.hasFlipped, vote.faceDown);
   const prompt = votePrompt(vote.tiedIndexes);
   const targets = voteTargets(state.play.aliveIndexes, voterAssignmentIndex, vote.tiedIndexes);
   const picks = targets
@@ -372,7 +372,7 @@ function voteView(state: AppState): string {
     .join("");
   const helper = nextOn
     ? "Pass the device to the next player."
-    : "Flip your card, pick someone, then pass.";
+    : "Flip your card, pick someone, then hide it to continue.";
   return `
     <section class="screen vote"${state.confirmQuit ? " inert" : ""}>
       ${quitButton()}

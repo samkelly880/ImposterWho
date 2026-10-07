@@ -1,7 +1,7 @@
 import { describe, expect, it } from "../testkit.ts";
 import { GameController } from "../controller.ts";
 import { memoryStorage } from "../storage.ts";
-import { paint, trapDialogTab } from "./app.ts";
+import { ejectSceneKey, paint, shouldPreserveEjectScene, trapDialogTab } from "./app.ts";
 
 function game(): GameController {
   return new GameController({ storage: memoryStorage(), random: () => 0 });
@@ -80,7 +80,9 @@ describe("Last Word paint focus", () => {
     g.openVote();
     for (let i = 0; i < 3; i++) {
       const voter = g.state.play.aliveIndexes[g.state.play.vote!.voterIndex]!;
+      g.tapCard();
       g.selectVoteTarget(voter === 1 ? 0 : 1);
+      g.tapCard();
       g.nextPlayer();
     }
     while (g.state.play.eject && g.state.play.eject.phase !== "ready") {
@@ -131,6 +133,41 @@ describe("Last Word paint focus", () => {
     expect(restored.focused).toBe(true);
     expect(restored.selectionStart).toBe(2);
     expect(restored.selectionEnd).toBe(2);
+  });
+});
+
+describe("kick-out scene key", () => {
+  it("stays the same when End round opens and does not preserve across a phase change", () => {
+    const g = game();
+    g.setName(0, "Ada");
+    g.setName(1, "Bob");
+    g.setName(2, "Cara");
+    g.setLastWord(true);
+    g.startRound();
+    for (let i = 0; i < 3; i++) {
+      g.tapCard();
+      g.tapCard();
+      g.nextPlayer();
+    }
+    g.openVote();
+    for (let i = 0; i < 3; i++) {
+      const voter = g.state.play.aliveIndexes[g.state.play.vote!.voterIndex]!;
+      g.tapCard();
+      g.selectVoteTarget(voter === 1 ? 0 : 1);
+      g.tapCard();
+      g.nextPlayer();
+    }
+    expect(g.state.screen).toBe("eject");
+    const falling = ejectSceneKey(g);
+    expect(falling).toMatch(/:falling$/);
+    expect(shouldPreserveEjectScene(null, falling)).toBe(false);
+    g.requestQuit();
+    expect(ejectSceneKey(g)).toBe(falling);
+    expect(shouldPreserveEjectScene(falling, ejectSceneKey(g))).toBe(true);
+    g.cancelQuit();
+    expect(ejectSceneKey(g)).toBe(falling);
+    g.advanceEjectPhase();
+    expect(shouldPreserveEjectScene(falling, ejectSceneKey(g))).toBe(false);
   });
 });
 

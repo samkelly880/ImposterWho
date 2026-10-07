@@ -147,12 +147,18 @@ function flipAll(game: GameController): void {
   }
 }
 
+function castBallot(game: GameController, target: number): void {
+  game.tapCard();
+  game.selectVoteTarget(target);
+  game.tapCard();
+  expect(game.nextPlayer()).toBe(true);
+}
+
 function unanimousVote(game: GameController, target: number, fallback: number): void {
   const voters = game.state.play.aliveIndexes.length;
   for (let i = 0; i < voters; i++) {
     const voter = game.state.play.aliveIndexes[game.state.play.vote!.voterIndex]!;
-    game.selectVoteTarget(voter === target ? fallback : target);
-    expect(game.nextPlayer()).toBe(true);
+    castBallot(game, voter === target ? fallback : target);
   }
 }
 
@@ -196,9 +202,16 @@ describe("Last Word controller", () => {
     expect(game.state.play.vote?.selectedIndex).toBe(null);
     game.selectVoteTarget(1);
     expect(game.state.play.vote?.selectedIndex).toBe(1);
+    expect(game.nextPlayer()).toBe(false);
+    game.tapCard();
+    expect(game.state.play.vote?.faceDown).toBe(false);
+    expect(game.nextPlayer()).toBe(false);
+    game.tapCard();
     expect(game.nextPlayer()).toBe(true);
     expect(game.state.play.vote?.voterIndex).toBe(1);
     expect(game.state.play.vote?.selectedIndex).toBe(null);
+    expect(game.state.play.vote?.faceDown).toBe(true);
+    expect(game.state.play.vote?.hasFlipped).toBe(false);
   });
 
   it("ejects a unique winner after the last ballot", () => {
@@ -217,22 +230,16 @@ describe("Last Word controller", () => {
     game.startRound();
     flipAll(game);
     game.openVote();
-    game.selectVoteTarget(1);
-    game.nextPlayer();
-    game.selectVoteTarget(2);
-    game.nextPlayer();
-    game.selectVoteTarget(0);
-    game.nextPlayer();
+    castBallot(game, 1);
+    castBallot(game, 2);
+    castBallot(game, 0);
     expect(game.state.screen).toBe("vote");
     expect(game.state.play.vote?.voterIndex).toBe(0);
     expect(game.state.play.vote?.ballots).toEqual({});
     expect(game.state.play.vote?.tiedIndexes).toEqual([0, 1, 2]);
-    game.selectVoteTarget(1);
-    game.nextPlayer();
-    game.selectVoteTarget(2);
-    game.nextPlayer();
-    game.selectVoteTarget(1);
-    game.nextPlayer();
+    castBallot(game, 1);
+    castBallot(game, 2);
+    castBallot(game, 1);
     expect(game.state.screen).toBe("eject");
     expect(game.state.play.eject?.index).toBe(1);
   });
@@ -308,6 +315,27 @@ describe("Last Word controller", () => {
     blank.submitLastWord();
     expect(blank.state.play.outcome).toBe("civilians");
     expect(blank.state.play.lastWordGuess).toBe("");
+  });
+
+  it("skips Last Word and the winner line when there were no imposters", () => {
+    const game = namedGame(["Ada", "Bob", "Cara", "Dee", "Eve", "Fay"]);
+    game.setTroll(true);
+    game.setTrollRule("allImposters", false);
+    game.setTrollRule("reverse", false);
+    game.setTrollRule("doubleAgent", false);
+    game.startRound();
+    expect(game.state.round?.trollRule).toBe("noImposters");
+    expect(game.state.round!.assignments.every((assignment) => assignment.role === "civilian")).toBe(
+      true,
+    );
+    flipAll(game);
+    game.openVote();
+    unanimousVote(game, 0, 1);
+    finishEject(game);
+    expect(game.state.screen).toBe("recap");
+    expect(game.state.play.outcome).toBe(null);
+    expect(game.state.play.lastWord).toBe(null);
+    expect(game.state.play.civilianEjectCount).toBe(1);
   });
 
   it("skips Last Word and the winner line when everybody is the imposter", () => {

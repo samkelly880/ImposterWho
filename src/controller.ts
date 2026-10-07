@@ -7,6 +7,7 @@ import {
   canPressNext,
   dealRound,
   gainsExtraClueRound,
+  isImposterTeam,
   lastWordMatches,
   pickStarterIndex,
   resetFlip,
@@ -221,6 +222,7 @@ export class GameController {
     const vote = this.state.play.vote;
     const round = this.state.round;
     if (!vote || !round || vote.selectedIndex === null) return false;
+    if (!canPressNext(vote.hasFlipped, vote.faceDown)) return false;
     const voterAssignment = this.state.play.aliveIndexes[vote.voterIndex];
     if (voterAssignment === undefined) return false;
     const ballots = { ...vote.ballots, [voterAssignment]: vote.selectedIndex };
@@ -327,6 +329,16 @@ export class GameController {
         ...this.state,
         screen: "recap",
         play: { ...play, outcome: "imposters" },
+        confirmQuit: false,
+      };
+      return;
+    }
+
+    if (!round.assignments.some((seat) => isImposterTeam(seat.role))) {
+      this.state = {
+        ...this.state,
+        screen: "recap",
+        play: { ...play, outcome: null },
         confirmQuit: false,
       };
       return;
