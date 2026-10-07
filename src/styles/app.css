@@ -547,6 +547,10 @@ button.card-face {
   color: inherit;
 }
 
+.card.is-flipped .card-face.back {
+  pointer-events: none;
+}
+
 .vote-list {
   display: flex;
   flex-direction: column;

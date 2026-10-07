@@ -384,7 +384,7 @@ function voteView(state: AppState): string {
               class="card-face back skin skin-${skin.color} pattern-${skin.pattern} skin-ink-${skin.ink}"
               type="button"
               data-action="flip"
-              ${vote.faceDown ? 'aria-label="Tap to vote"' : 'aria-hidden="true"'}
+              ${vote.faceDown ? 'aria-label="Tap to vote"' : 'aria-hidden="true" disabled'}
             >
               <p class="card-name fit-line">${escapeHtml(voter.name)}</p>
               <p class="card-prompt">${escapeHtml(prompt)}</p>

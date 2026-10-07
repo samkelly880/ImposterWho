@@ -522,6 +522,26 @@ describe("Last Word markup", () => {
     expect(open).toContain("Press Next to hide your vote and pass.");
   });
 
+  it("takes the vote back-face flip out of the tab order once the card is open", () => {
+    const g = lastWordGame();
+    g.openVote();
+    const closedFlip = renderApp(g).match(/<button[^>]*data-action="flip"[^>]*>/);
+    expect(closedFlip).not.toBeNull();
+    expect(closedFlip![0]).toContain('aria-label="Tap to vote"');
+    expect(closedFlip![0]).not.toContain("disabled");
+    expect(closedFlip![0]).not.toContain("aria-hidden");
+
+    g.tapCard();
+    const openFlip = renderApp(g).match(/<button[^>]*data-action="flip"[^>]*>/);
+    expect(openFlip).not.toBeNull();
+    expect(openFlip![0]).toContain("disabled");
+    expect(openFlip![0]).toContain('aria-hidden="true"');
+    expect(openFlip![0]).not.toContain("aria-label");
+    expect(appCss).toMatch(
+      /\.card\.is-flipped\s+\.card-face\.back\s*\{[^}]*pointer-events:\s*none/,
+    );
+  });
+
   it("shows kick-out copy for an imposter and a civilian", () => {
     const imposterGame = lastWordGame();
     voteOut(imposterGame, 1, 0);
