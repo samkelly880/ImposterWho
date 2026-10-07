@@ -75,20 +75,19 @@ export function assignRoles(
   if (trollRule === "noImposters") {
     return Array.from({ length: playerCount }, () => "civilian");
   }
-  if (trollRule === "reverse") {
-    const civilianIndex = pickIndex(playerCount, random);
-    return Array.from({ length: playerCount }, (_, i) =>
-      i === civilianIndex ? "civilian" : "imposter",
-    );
-  }
   const clamped = Math.min(Math.max(imposterCount, 1), playerCount - 1);
   const order = shuffled(
     Array.from({ length: playerCount }, (_, i) => i),
     random,
   );
-  const imposters = new Set(order.slice(0, clamped));
+  const minority = new Set(order.slice(0, clamped));
+  if (trollRule === "reverse") {
+    return Array.from({ length: playerCount }, (_, i) =>
+      minority.has(i) ? "civilian" : "imposter",
+    );
+  }
   return Array.from({ length: playerCount }, (_, i) =>
-    imposters.has(i) ? "imposter" : "civilian",
+    minority.has(i) ? "imposter" : "civilian",
   );
 }
 

@@ -105,10 +105,16 @@ describe("role assignment", () => {
     expect(roles).toEqual(["civilian", "civilian", "civilian", "civilian"]);
   });
 
-  it("Reverse leaves exactly one civilian", () => {
-    const roles = assignRoles(5, 1, "reverse", () => 0.5);
-    expect(roles.filter((r) => r === "civilian")).toHaveLength(1);
-    expect(roles.filter((r) => r === "imposter")).toHaveLength(4);
+  it("Reverse leaves as many civilians as a normal round would have imposters", () => {
+    const one = assignRoles(5, 1, "reverse", () => 0.5);
+    expect(one.filter((r) => r === "civilian")).toHaveLength(1);
+    expect(one.filter((r) => r === "imposter")).toHaveLength(4);
+    const two = assignRoles(8, 2, "reverse", () => 0.5);
+    expect(two.filter((r) => r === "civilian")).toHaveLength(2);
+    expect(two.filter((r) => r === "imposter")).toHaveLength(6);
+    const clamped = assignRoles(5, 99, "reverse", () => 0.5);
+    expect(clamped.filter((r) => r === "civilian")).toHaveLength(4);
+    expect(clamped.filter((r) => r === "imposter")).toHaveLength(1);
   });
 
   it("Double Agent uses the normal imposter count (conversion happens in dealRound)", () => {
@@ -174,9 +180,11 @@ describe("dealRound", () => {
   });
 
   it("Reverse imposters get in-category hints that may come from other words", () => {
-    const setup = namedSetup(["Ada", "Bob", "Cara"], {
+    const setup = namedSetup(["Ada", "Bob", "Cara", "Dee", "Eve", "Fay", "Gus", "Han"], {
       trollEnabled: true,
       trollRules: rules({ reverse: true }),
+      autoImposters: false,
+      imposterCount: 2,
     });
     const { round } = dealRound({
       setup,
@@ -185,7 +193,8 @@ describe("dealRound", () => {
       random: () => 0,
     });
     expect(round.trollRule).toBe("reverse");
-    expect(round.assignments.filter((a) => a.role === "civilian")).toHaveLength(1);
+    expect(round.assignments.filter((a) => a.role === "civilian")).toHaveLength(2);
+    expect(round.assignments.filter((a) => a.role === "imposter")).toHaveLength(6);
     expect(round.secretWord).toBeTruthy();
     const food = categoryById("food", pack);
     const secretHints = new Set(wordEntry(food, round.secretWord!).hints);
