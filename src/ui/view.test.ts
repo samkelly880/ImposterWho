@@ -181,9 +181,9 @@ describe("imposter flip-card type", () => {
     expect(html).toMatch(/class="card-face front is-imposter\b/);
     expect(html).not.toMatch(/class="card-face back[^"]*is-imposter/);
     expect(html).toMatch(
-      /class="card-role">You are the imposter\.<\/p>\s*<p class="card-hint-label">Hint:<\/p>\s*<p class="card-hint-word">/,
+      /class="card-role">You are the imposter\.<\/p>\s*<p class="card-hint-label">Hint:<\/p>\s*<p class="card-hint-word fit-line">/,
     );
-    expect(html).toContain(`class="card-hint-word">${hint}</p>`);
+    expect(html).toContain(`class="card-hint-word fit-line">${hint}</p>`);
     expect(html).not.toMatch(/class="card-kicker">Hint:/);
   });
 
@@ -193,7 +193,7 @@ describe("imposter flip-card type", () => {
     const html = renderCurrentPlayer(g, index);
     expect(html).not.toMatch(/class="card-face front[^"]*is-imposter/);
     expect(html).toContain('class="card-kicker">The word is</p>');
-    expect(html).toMatch(/class="card-word">/);
+    expect(html).toMatch(/class="card-word fit-line">/);
     expect(html).not.toContain("card-hint-label");
     expect(html).not.toContain("You are the imposter.");
   });
@@ -222,6 +222,81 @@ describe("imposter flip-card type", () => {
     expect(appCss).toMatch(/\.card-kicker\s*\{[^}]*font-weight:\s*700/);
     expect(appCss).toMatch(/\.card-word\s*\{[^}]*clamp\(2rem,\s*9vw,\s*3rem\)/);
     expect(appCss).not.toMatch(/\.card-word,\s*\n?\s*\.card-hint-word/);
+  });
+});
+
+describe("fit-line markup and CSS", () => {
+  it("adds fit-line to overflow targets and leaves the role wrapping", () => {
+    const civilianGame = startedGame();
+    const civilianHtml = renderCurrentPlayer(
+      civilianGame,
+      playerIndexWithRole(civilianGame, "civilian"),
+    );
+    expect(civilianHtml).toMatch(/class="card-word fit-line"/);
+    expect(civilianHtml).toMatch(/class="card-name fit-line"/);
+    expect(civilianHtml).not.toMatch(/class="card-role[^"]*fit-line/);
+
+    const imposterGame = startedGame();
+    const imposterHtml = renderCurrentPlayer(
+      imposterGame,
+      playerIndexWithRole(imposterGame, "imposter"),
+    );
+    expect(imposterHtml).toMatch(/class="card-hint-word fit-line"/);
+    expect(imposterHtml).toContain('class="card-role">You are the imposter.</p>');
+    expect(imposterHtml).not.toMatch(/class="card-role[^"]*fit-line/);
+
+    const startGame = startedGame();
+    for (let i = 0; i < startGame.state.round!.assignments.length; i++) {
+      startGame.tapCard();
+      startGame.tapCard();
+      startGame.nextPlayer();
+    }
+    expect(renderApp(startGame)).toMatch(/class="start-name fit-line"/);
+    startGame.openRecap();
+    expect(renderApp(startGame)).toMatch(/class="recap-word fit-line"/);
+  });
+
+  it("keeps fit-line on the All Imposters recap line", () => {
+    const g = game();
+    g.setName(0, "Ada");
+    g.setName(1, "Bob");
+    g.setName(2, "Cara");
+    g.setTroll(true);
+    g.setTrollRule("noImposters", false);
+    g.setTrollRule("reverse", false);
+    g.startRound();
+    expect(g.state.round?.secretWord).toBe(null);
+    for (let i = 0; i < g.state.round!.assignments.length; i++) {
+      g.tapCard();
+      g.tapCard();
+      g.nextPlayer();
+    }
+    g.openRecap();
+    const recap = renderApp(g);
+    expect(recap).toContain("This round had no secret word.");
+    expect(recap).toMatch(/class="recap-word fit-line"/);
+  });
+
+  it("sets nowrap clipping on fit-line and drops word-break from shrink targets", () => {
+    expect(appCss).toMatch(/\.fit-line\s*\{[^}]*white-space:\s*nowrap/);
+    expect(appCss).toMatch(/\.fit-line\s*\{[^}]*overflow:\s*hidden/);
+    expect(appCss).toMatch(/\.fit-line\s*\{[^}]*width:\s*100%/);
+    expect(appCss).not.toMatch(/\.card-word\s*\{[^}]*word-break/);
+    expect(appCss).not.toMatch(/\.card-hint-word\s*\{[^}]*word-break/);
+    expect(appCss).not.toMatch(/\.card-name\s*\{[^}]*word-break/);
+    expect(appCss).not.toMatch(/\.start-name\s*\{[^}]*word-break/);
+    expect(appCss).toMatch(/\.card-role\s*\{[^}]*word-break:\s*break-word/);
+  });
+
+  it("expands the fit-line clip box so Fraunces descenders are not sliced", () => {
+    expect(appCss).toMatch(/--fit-line-bleed:\s*0\.25em/);
+    expect(appCss).toMatch(/\.fit-line\s*\{[^}]*overflow:\s*hidden/);
+    expect(appCss).toMatch(/\.fit-line\s*\{[^}]*padding-block:\s*var\(--fit-line-bleed\)/);
+    expect(appCss).toMatch(/\.card-name\s*\{[^}]*var\(--fit-line-bleed/);
+    expect(appCss).toMatch(/\.card-word\s*\{[^}]*var\(--fit-line-bleed/);
+    expect(appCss).toMatch(/\.card-hint-word\s*\{[^}]*var\(--fit-line-bleed/);
+    expect(appCss).toMatch(/\.start-name\s*\{[^}]*var\(--fit-line-bleed/);
+    expect(appCss).toMatch(/\.recap-word\s*\{[^}]*var\(--fit-line-bleed/);
   });
 });
 

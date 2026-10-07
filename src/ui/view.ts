@@ -174,12 +174,12 @@ function assignmentCopy(
   if (assignment.role === "civilian") {
     return `
       <p class="card-kicker">The word is</p>
-      <p class="card-word">${escapeHtml(secretWord ?? "")}</p>
+      <p class="card-word fit-line">${escapeHtml(secretWord ?? "")}</p>
     `;
   }
   const hint =
     hintsEnabled && assignment.hint
-      ? `<p class="card-hint-label">Hint:</p><p class="card-hint-word">${escapeHtml(assignment.hint)}</p>`
+      ? `<p class="card-hint-label">Hint:</p><p class="card-hint-word fit-line">${escapeHtml(assignment.hint)}</p>`
       : "";
   return `
     <p class="card-role">You are the imposter.</p>
@@ -210,7 +210,7 @@ function flipView(state: AppState): string {
         >
           <div class="card-inner">
             <div class="card-face back skin skin-${skin.color} pattern-${skin.pattern} skin-ink-${skin.ink}" ${state.flip.faceDown ? "" : "aria-hidden=\"true\""}>
-              <p class="card-name">${escapeHtml(assignment.name)}</p>
+              <p class="card-name fit-line">${escapeHtml(assignment.name)}</p>
               <p class="card-prompt">Tap to flip.</p>
             </div>
             <div class="card-face front${frontRole} skin skin-${skin.color} pattern-${skin.pattern} skin-ink-${skin.ink}" ${state.flip.faceDown ? "aria-hidden=\"true\"" : ""}>
@@ -234,7 +234,7 @@ function startView(state: AppState): string {
     <section class="screen start"${state.confirmQuit ? " inert" : ""}>
       ${quitButton()}
       <div class="start-block">
-        <p class="start-name">${escapeHtml(starter.name)}</p>
+        <p class="start-name fit-line">${escapeHtml(starter.name)}</p>
         <p class="start-line">starts.</p>
         <p class="hint">Clue-giving begins with them.</p>
       </div>
@@ -251,8 +251,8 @@ function recapView(state: AppState): string {
   const round = state.round;
   if (!round) return "";
   const wordBlock = round.secretWord
-    ? `<p class="hint">The word was</p><p class="recap-word">${escapeHtml(round.secretWord)}</p>`
-    : `<p class="recap-word">This round had no secret word.</p>`;
+    ? `<p class="hint">The word was</p><p class="recap-word fit-line">${escapeHtml(round.secretWord)}</p>`
+    : `<p class="recap-word fit-line">This round had no secret word.</p>`;
   const troll = trollRecapLine(round.trollRule);
   const rows = round.assignments
     .map(
