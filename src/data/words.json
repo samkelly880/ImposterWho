@@ -1,0 +1,180 @@
+{
+  "categories": [
+    {
+      "id": "food",
+      "name": "Food",
+      "words": [
+        { "word": "Pizza", "hints": ["Cheesy", "Slice"] },
+        { "word": "Sushi", "hints": ["Raw", "Rice"] },
+        { "word": "Taco", "hints": ["Shell", "Spicy"] },
+        { "word": "Burger", "hints": ["Patty", "Bun"] },
+        { "word": "Pancake", "hints": ["Syrup", "Fluffy"] },
+        { "word": "Popcorn", "hints": ["Kernel", "Salty"] },
+        { "word": "Banana", "hints": ["Yellow", "Peel"] },
+        { "word": "Chocolate", "hints": ["Cocoa", "Melt"] },
+        { "word": "Soup", "hints": ["Broth", "Bowl"] },
+        { "word": "Sandwich", "hints": ["Bread", "Layers"] },
+        { "word": "Ice cream", "hints": ["Cone", "Scoop"] },
+        { "word": "Pasta", "hints": ["Noodle", "Sauce"] },
+        { "word": "Apple", "hints": ["Crunchy", "Core"] },
+        { "word": "Salad", "hints": ["Greens", "Toss"] },
+        { "word": "Cookie", "hints": ["Crumb", "Bake"] },
+        { "word": "Waffle", "hints": ["Grid", "Crisp"] }
+      ]
+    },
+    {
+      "id": "animals",
+      "name": "Animals",
+      "words": [
+        { "word": "Elephant", "hints": ["Trunk", "Tusks"] },
+        { "word": "Penguin", "hints": ["Waddle", "Ice"] },
+        { "word": "Lion", "hints": ["Mane", "Roar"] },
+        { "word": "Dolphin", "hints": ["Flipper", "Ocean"] },
+        { "word": "Giraffe", "hints": ["Tall", "Spots"] },
+        { "word": "Owl", "hints": ["Hoot", "Night"] },
+        { "word": "Kangaroo", "hints": ["Pouch", "Hop"] },
+        { "word": "Turtle", "hints": ["Shell", "Slow"] },
+        { "word": "Butterfly", "hints": ["Wings", "Flutter"] },
+        { "word": "Shark", "hints": ["Teeth", "Fin"] },
+        { "word": "Cat", "hints": ["Whiskers", "Purr"] },
+        { "word": "Dog", "hints": ["Bark", "Fetch"] },
+        { "word": "Frog", "hints": ["Jump", "Pond"] },
+        { "word": "Bee", "hints": ["Honey", "Buzz"] },
+        { "word": "Horse", "hints": ["Saddle", "Gallop"] },
+        { "word": "Snake", "hints": ["Slither", "Scales"] }
+      ]
+    },
+    {
+      "id": "places",
+      "name": "Places",
+      "words": [
+        { "word": "Beach", "hints": ["Sand", "Waves"] },
+        { "word": "Library", "hints": ["Books", "Quiet"] },
+        { "word": "Airport", "hints": ["Runway", "Gate"] },
+        { "word": "Zoo", "hints": ["Habitat", "Exhibit"] },
+        { "word": "Museum", "hints": ["Gallery", "Artifact"] },
+        { "word": "Hospital", "hints": ["Ward", "Ambulance"] },
+        { "word": "Park", "hints": ["Bench", "Picnic"] },
+        { "word": "Stadium", "hints": ["Crowd", "Scoreboard"] },
+        { "word": "Kitchen", "hints": ["Stove", "Recipe"] },
+        { "word": "Castle", "hints": ["Moat", "Tower"] },
+        { "word": "Desert", "hints": ["Dune", "Cactus"] },
+        { "word": "Farm", "hints": ["Barn", "Harvest"] },
+        { "word": "Cinema", "hints": ["Screen", "Ticket"] },
+        { "word": "Bridge", "hints": ["Span", "Arch"] },
+        { "word": "Island", "hints": ["Shore", "Ferry"] },
+        { "word": "Mountain", "hints": ["Peak", "Climb"] }
+      ]
+    },
+    {
+      "id": "jobs",
+      "name": "Jobs",
+      "words": [
+        { "word": "Doctor", "hints": ["Clinic", "Diagnosis"] },
+        { "word": "Teacher", "hints": ["Lesson", "Homework"] },
+        { "word": "Chef", "hints": ["Apron", "Recipe"] },
+        { "word": "Pilot", "hints": ["Cockpit", "Flight"] },
+        { "word": "Farmer", "hints": ["Tractor", "Crops"] },
+        { "word": "Firefighter", "hints": ["Hose", "Hydrant"] },
+        { "word": "Dentist", "hints": ["Drill", "Cavity"] },
+        { "word": "Artist", "hints": ["Canvas", "Palette"] },
+        { "word": "Judge", "hints": ["Gavel", "Verdict"] },
+        { "word": "Nurse", "hints": ["Patient", "Scrubs"] },
+        { "word": "Mechanic", "hints": ["Wrench", "Garage"] },
+        { "word": "Baker", "hints": ["Oven", "Dough"] },
+        { "word": "Police", "hints": ["Badge", "Patrol"] },
+        { "word": "Astronaut", "hints": ["Orbit", "Rocket"] },
+        { "word": "Librarian", "hints": ["Catalog", "Silence"] },
+        { "word": "Plumber", "hints": ["Pipes", "Drain"] }
+      ]
+    },
+    {
+      "id": "sports",
+      "name": "Sports",
+      "words": [
+        { "word": "Soccer", "hints": ["Goal", "Pitch"] },
+        { "word": "Basketball", "hints": ["Hoop", "Dribble"] },
+        { "word": "Tennis", "hints": ["Racket", "Serve"] },
+        { "word": "Baseball", "hints": ["Bat", "Diamond"] },
+        { "word": "Swimming", "hints": ["Lane", "Splash"] },
+        { "word": "Golf", "hints": ["Club", "Hole"] },
+        { "word": "Volleyball", "hints": ["Net", "Spike"] },
+        { "word": "Hockey", "hints": ["Puck", "Ice"] },
+        { "word": "Boxing", "hints": ["Gloves", "Ring"] },
+        { "word": "Skiing", "hints": ["Slope", "Poles"] },
+        { "word": "Cricket", "hints": ["Wicket", "Bowler"] },
+        { "word": "Rugby", "hints": ["Scrum", "Try"] },
+        { "word": "Cycling", "hints": ["Pedal", "Helmet"] },
+        { "word": "Bowling", "hints": ["Pins", "Alley"] },
+        { "word": "Skating", "hints": ["Blades", "Rink"] },
+        { "word": "Archery", "hints": ["Bow", "Target"] }
+      ]
+    },
+    {
+      "id": "movies",
+      "name": "Movies",
+      "words": [
+        { "word": "Frozen", "hints": ["Ice", "Queen"] },
+        { "word": "Shrek", "hints": ["Ogre", "Swamp"] },
+        { "word": "Titanic", "hints": ["Iceberg", "Voyage"] },
+        { "word": "Jaws", "hints": ["Shark", "Boat"] },
+        { "word": "Avatar", "hints": ["Blue", "Planet"] },
+        { "word": "Cinderella", "hints": ["Slipper", "Midnight"] },
+        { "word": "Batman", "hints": ["Gotham", "Cave"] },
+        { "word": "Superman", "hints": ["Kryptonite", "Flight"] },
+        { "word": "Toy Story", "hints": ["Toys", "Cowboy"] },
+        { "word": "Finding Nemo", "hints": ["Reef", "Current"] },
+        { "word": "Star Wars", "hints": ["Jedi", "Force"] },
+        { "word": "Harry Potter", "hints": ["Wand", "Hogwarts"] },
+        { "word": "Lion King", "hints": ["Pride", "Savannah"] },
+        { "word": "Jurassic Park", "hints": ["Dinosaur", "Fence"] },
+        { "word": "Spider-Man", "hints": ["Web", "Mask"] },
+        { "word": "Inside Out", "hints": ["Emotions", "Memory"] }
+      ]
+    },
+    {
+      "id": "household",
+      "name": "Household",
+      "words": [
+        { "word": "Sofa", "hints": ["Cushion", "Lounge"] },
+        { "word": "Fridge", "hints": ["Cold", "Door"] },
+        { "word": "Lamp", "hints": ["Shade", "Bulb"] },
+        { "word": "Vacuum", "hints": ["Dust", "Clean"] },
+        { "word": "Pillow", "hints": ["Soft", "Sleep"] },
+        { "word": "Blanket", "hints": ["Warm", "Cover"] },
+        { "word": "Toaster", "hints": ["Bread", "Pop"] },
+        { "word": "Microwave", "hints": ["Beep", "Heat"] },
+        { "word": "Broom", "hints": ["Sweep", "Bristles"] },
+        { "word": "Clock", "hints": ["Time", "Tick"] },
+        { "word": "Mirror", "hints": ["Glass", "Reflection"] },
+        { "word": "Curtains", "hints": ["Window", "Drape"] },
+        { "word": "Table", "hints": ["Legs", "Dinner"] },
+        { "word": "Chair", "hints": ["Sit", "Seat"] },
+        { "word": "Kettle", "hints": ["Boil", "Steam"] },
+        { "word": "Dishwasher", "hints": ["Plates", "Cycle"] }
+      ]
+    },
+    {
+      "id": "school",
+      "name": "School",
+      "words": [
+        { "word": "Pencil", "hints": ["Graphite", "Eraser"] },
+        { "word": "Backpack", "hints": ["Straps", "Zipper"] },
+        { "word": "Homework", "hints": ["Worksheet", "Deadline"] },
+        { "word": "Recess", "hints": ["Playground", "Break"] },
+        { "word": "Cafeteria", "hints": ["Tray", "Lunch"] },
+        { "word": "Textbook", "hints": ["Chapter", "Pages"] },
+        { "word": "Chalkboard", "hints": ["Slate", "Dust"] },
+        { "word": "Principal", "hints": ["Office", "Assembly"] },
+        { "word": "Exam", "hints": ["Grade", "Timed"] },
+        { "word": "Locker", "hints": ["Combination", "Hallway"] },
+        { "word": "Glue", "hints": ["Sticky", "Craft"] },
+        { "word": "Ruler", "hints": ["Measure", "Straight"] },
+        { "word": "Compass", "hints": ["Circle", "Geometry"] },
+        { "word": "Calculator", "hints": ["Buttons", "Equals"] },
+        { "word": "Desk", "hints": ["Drawer", "Seat"] },
+        { "word": "Bell", "hints": ["Ring", "Period"] }
+      ]
+    }
+  ]
+}
