@@ -9,15 +9,25 @@ import {
   assignRoles,
   canPressNext,
   dealRound,
+  ejectDoubleAgentLine,
+  ejectVerdictLine,
   formatImposterLine,
+  gainsExtraClueRound,
+  imposterArticle,
   isImposterTeam,
   isTrollArmed,
+  lastWordMatches,
   pickStarterIndex,
+  recapEjectedLine,
   resetFlip,
   rollTroll,
   seesSecretWord,
   starterWeights,
+  tallyVotes,
+  topTiedIndexes,
   trollRecapLine,
+  votePrompt,
+  voteTargets,
 } from "./round.ts";
 import type { SetupState, TrollRuleId, TrollRules } from "./types.ts";
 
@@ -385,6 +395,66 @@ describe("recap copy", () => {
       expect(trollRecapLine(rule)).toBe(line);
     });
   }
+});
+
+describe("secret vote helpers", () => {
+  it("excludes self, the dead, and anyone outside a tie set", () => {
+    expect(voteTargets([0, 1, 2], 1, null)).toEqual([0, 2]);
+    expect(voteTargets([0, 2, 3], 2, null)).toEqual([0, 3]);
+    expect(voteTargets([0, 1, 2, 3], 0, [1, 3])).toEqual([1, 3]);
+    expect(voteTargets([0, 1, 2], 1, [0, 1])).toEqual([0]);
+  });
+
+  it("tallies ballots and returns the tied top names in seat order", () => {
+    expect([...tallyVotes({ 0: 2, 1: 2, 2: 0 }).entries()]).toEqual([
+      [2, 2],
+      [0, 1],
+    ]);
+    expect(topTiedIndexes({ 0: 1, 2: 1, 1: 0 })).toEqual([1]);
+    expect(topTiedIndexes({ 0: 1, 1: 0, 2: 1, 3: 0 })).toEqual([0, 1]);
+  });
+
+  it("uses the last-imposter article and ignores Double Agent as an imposter", () => {
+    expect(imposterArticle("imposter", ["civilian", "civilian"])).toBe("the");
+    expect(imposterArticle("imposter", ["imposter", "civilian"])).toBe("an");
+    expect(imposterArticle("imposter", ["doubleAgent", "civilian"])).toBe("the");
+    expect(imposterArticle("doubleAgent", [])).toBe("an");
+    expect(imposterArticle("civilian", ["imposter"])).toBe("an");
+    expect(ejectVerdictLine("Sam", "imposter", ["civilian"])).toBe("Sam was the imposter.");
+    expect(ejectVerdictLine("Sam", "imposter", ["imposter"])).toBe("Sam was an imposter.");
+    expect(ejectVerdictLine("Sam", "civilian", ["imposter"])).toBe("Sam was not an imposter.");
+    expect(ejectVerdictLine("Sam", "doubleAgent", ["imposter"])).toBe(
+      "Sam was not an imposter.",
+    );
+    expect(ejectDoubleAgentLine("Sam")).toBe("...Sam was the double agent");
+  });
+
+  it("matches last-word guesses on trim and case, not on blanks or near misses", () => {
+    expect(lastWordMatches("ice cream", "Ice cream")).toBe(true);
+    expect(lastWordMatches("  Ice   cream ", "Ice cream")).toBe(true);
+    expect(lastWordMatches("Icecream", "Ice cream")).toBe(false);
+    expect(lastWordMatches("ice creme", "Ice cream")).toBe(false);
+    expect(lastWordMatches("", "Ice cream")).toBe(false);
+    expect(lastWordMatches("   ", "Ice cream")).toBe(false);
+    expect(lastWordMatches("Ice cream", null)).toBe(false);
+  });
+
+  it("grants an extra clue only for the first civilian eject at 6+", () => {
+    expect(gainsExtraClueRound(6, 0, "civilian")).toBe(true);
+    expect(gainsExtraClueRound(12, 0, "civilian")).toBe(true);
+    expect(gainsExtraClueRound(5, 0, "civilian")).toBe(false);
+    expect(gainsExtraClueRound(6, 1, "civilian")).toBe(false);
+    expect(gainsExtraClueRound(6, 0, "imposter")).toBe(false);
+    expect(gainsExtraClueRound(6, 0, "doubleAgent")).toBe(false);
+  });
+
+  it("formats the recap eject list and the tie prompt", () => {
+    expect(recapEjectedLine([])).toBe(null);
+    expect(recapEjectedLine(["Ada"])).toBe("Ejected: Ada");
+    expect(recapEjectedLine(["Ada", "Bob"])).toBe("Ejected: Ada, then Bob");
+    expect(votePrompt(null)).toBe("Tap to vote.");
+    expect(votePrompt([0, 1])).toBe("Tied. Tap to vote.");
+  });
 });
 
 describe("role helpers", () => {

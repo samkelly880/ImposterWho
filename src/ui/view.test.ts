@@ -51,11 +51,19 @@ describe("setup markup", () => {
     const html = renderApp(game());
     expect(html).toContain('aria-label="Auto"');
     expect(html).toContain('aria-label="Imposter hints"');
+    expect(html).toContain('aria-label="Last Word"');
     expect(html).toContain('aria-label="Troll mode"');
     expect(html).not.toContain('aria-label="auto-imposters"');
     expect(html).not.toContain("sr-only\">auto-imposters");
     expect(html).not.toContain("sr-only\">hints");
     expect(html).not.toContain("sr-only\">troll");
+  });
+
+  it("defaults Last Word off", () => {
+    const html = renderApp(game());
+    expect(html).toMatch(/id="last-word"[^>]*aria-label="Last Word"/);
+    expect(html).not.toMatch(/id="last-word"[^>]*checked/);
+    expect(html).toContain("Last Word");
   });
 });
 
@@ -433,6 +441,140 @@ describe("fit-line markup and CSS", () => {
     expect(appCss).toMatch(/\.card-da-intel\s*\{[^}]*var\(--fit-line-bleed/);
     expect(appCss).toMatch(/\.start-name\s*\{[^}]*var\(--fit-line-bleed/);
     expect(appCss).toMatch(/\.recap-word\s*\{[^}]*var\(--fit-line-bleed/);
+  });
+});
+
+describe("Last Word markup", () => {
+  function lastWordGame(names = ["Ada", "Bob", "Cara"]): GameController {
+    const g = game();
+    names.forEach((name, index) => {
+      if (index >= g.state.setup.names.length) g.addPlayer();
+      g.setName(index, name);
+    });
+    g.setLastWord(true);
+    g.startRound();
+    for (let i = 0; i < g.state.round!.assignments.length; i++) {
+      g.tapCard();
+      g.tapCard();
+      g.nextPlayer();
+    }
+    return g;
+  }
+
+  function voteOut(g: GameController, target: number, fallback: number): void {
+    g.openVote();
+    const voters = g.state.play.aliveIndexes.length;
+    for (let i = 0; i < voters; i++) {
+      const voter = g.state.play.aliveIndexes[g.state.play.vote!.voterIndex]!;
+      g.selectVoteTarget(voter === target ? fallback : target);
+      g.nextPlayer();
+    }
+  }
+
+  function readyEject(g: GameController): void {
+    while (g.state.play.eject && g.state.play.eject.phase !== "ready") {
+      g.advanceEjectPhase();
+    }
+  }
+
+  it("labels the start-screen button Vote", () => {
+    const html = renderApp(lastWordGame());
+    expect(html).toContain('data-action="vote">Vote</button>');
+    expect(html).not.toContain("Reveal the round");
+  });
+
+  it("prompts Tied. Tap to vote. and lists only tied names", () => {
+    const g = lastWordGame();
+    g.openVote();
+    g.selectVoteTarget(1);
+    g.nextPlayer();
+    g.selectVoteTarget(2);
+    g.nextPlayer();
+    g.selectVoteTarget(0);
+    g.nextPlayer();
+    const html = renderApp(g);
+    expect(html).toContain("Tied. Tap to vote.");
+    expect(html).toContain('data-action="vote-pick"');
+    expect(html).toContain("Ada");
+    expect(html).toContain("Bob");
+    expect(html).toContain("Cara");
+    expect(html).toMatch(/data-action="next"[^>]*disabled/);
+  });
+
+  it("shows kick-out copy for an imposter and a civilian", () => {
+    const imposterGame = lastWordGame();
+    voteOut(imposterGame, 1, 0);
+    imposterGame.advanceEjectPhase();
+    expect(renderApp(imposterGame)).toContain("Bob was the imposter.");
+    readyEject(imposterGame);
+    expect(renderApp(imposterGame)).toContain("Continue");
+
+    const civilianGame = lastWordGame();
+    voteOut(civilianGame, 0, 1);
+    civilianGame.advanceEjectPhase();
+    expect(renderApp(civilianGame)).toContain("Ada was not an imposter.");
+  });
+
+  it("plays the Double Agent second line after the civilian verdict", () => {
+    const g = game();
+    g.setName(0, "Ada");
+    g.setName(1, "Bob");
+    g.setName(2, "Cara");
+    g.setName(3, "Dee");
+    g.setLastWord(true);
+    armDoubleAgentOnly(g);
+    g.startRound();
+    for (let i = 0; i < g.state.round!.assignments.length; i++) {
+      g.tapCard();
+      g.tapCard();
+      g.nextPlayer();
+    }
+    voteOut(g, 0, 1);
+    g.advanceEjectPhase();
+    expect(renderApp(g)).toContain("Ada was not an imposter.");
+    expect(renderApp(g)).not.toContain("...Ada was the double agent");
+    g.advanceEjectPhase();
+    const mid = renderApp(g);
+    expect(mid).toContain("Ada was not an imposter.");
+    expect(mid).toContain("...Ada was the double agent");
+    g.advanceEjectPhase();
+    const ready = renderApp(g);
+    expect(ready).toContain("...Ada was the double agent");
+    expect(ready).toContain("Continue");
+  });
+
+  it("shows recap winner, guess, and ejected names", () => {
+    const g = lastWordGame();
+    voteOut(g, 1, 0);
+    readyEject(g);
+    g.continueEject();
+    g.setLastWordDraft("ice cream");
+    g.submitLastWord();
+    const recap = renderApp(g);
+    expect(recap).toMatch(/Imposters win\.|Civilians win\./);
+    expect(recap).toContain("Ejected: Bob");
+    expect(recap).toContain("Bob guessed: ice cream");
+  });
+
+  it("omits winner, eject, and guess lines when Last Word is off", () => {
+    const g = startedGame();
+    for (let i = 0; i < g.state.round!.assignments.length; i++) {
+      g.tapCard();
+      g.tapCard();
+      g.nextPlayer();
+    }
+    g.openRecap();
+    const recap = renderApp(g);
+    expect(recap).not.toContain("Imposters win.");
+    expect(recap).not.toContain("Civilians win.");
+    expect(recap).not.toContain("Ejected:");
+    expect(recap).not.toContain("guessed:");
+  });
+
+  it("skips the fall animation under reduced motion", () => {
+    expect(appCss).toMatch(/@media \(prefers-reduced-motion:\s*reduce\)/);
+    expect(appCss).toMatch(/\.eject-card\.is-falling\s*\{[^}]*animation:\s*none/);
+    expect(appCss).toMatch(/@keyframes eject-fall/);
   });
 });
 

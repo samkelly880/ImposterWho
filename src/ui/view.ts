@@ -2,7 +2,16 @@ import type { GameController } from "../controller.ts";
 import { escapeHtml } from "../html.ts";
 import { effectivePlayerCount } from "../names.ts";
 import { clampImposterCount } from "../imposters.ts";
-import { canPressNext, formatImposterLine, trollRecapLine } from "../round.ts";
+import {
+  canPressNext,
+  ejectDoubleAgentLine,
+  ejectVerdictLine,
+  formatImposterLine,
+  recapEjectedLine,
+  trollRecapLine,
+  votePrompt,
+  voteTargets,
+} from "../round.ts";
 import { skinForSlot } from "../skins.ts";
 import {
   MAX_PLAYERS,
@@ -146,6 +155,10 @@ function setupView(
             ${switchControl("hints", state.setup.hintsEnabled, "toggle-hints", "Imposter hints")}
           </div>
           <div class="toggle-row">
+            <span>Last Word</span>
+            ${switchControl("last-word", state.setup.lastWordEnabled, "toggle-last-word", "Last Word")}
+          </div>
+          <div class="toggle-row">
             <span>Troll mode</span>
             ${switchControl("troll", state.setup.trollEnabled, "toggle-troll", "Troll mode")}
           </div>
@@ -261,7 +274,11 @@ function startView(state: AppState): string {
       <div class="actions">
         <button class="primary-btn" type="button" data-action="new-round">New round</button>
         <button class="secondary-btn" type="button" data-action="setup">Setup</button>
-        <button class="secondary-btn" type="button" data-action="recap">Reveal the round</button>
+        ${
+          state.setup.lastWordEnabled
+            ? `<button class="secondary-btn" type="button" data-action="vote">Vote</button>`
+            : `<button class="secondary-btn" type="button" data-action="recap">Reveal the round</button>`
+        }
       </div>
     </section>
   `;
@@ -278,6 +295,21 @@ function recapView(state: AppState): string {
     round.trollRule === "doubleAgent"
       ? `<p class="troll-line">The double agent was on the imposters' team.</p>`
       : "";
+  const lastWordOn = state.setup.lastWordEnabled;
+  const winner =
+    lastWordOn && state.play.outcome
+      ? `<p class="winner-line">${state.play.outcome === "imposters" ? "Imposters win." : "Civilians win."}</p>`
+      : "";
+  const ejectedNames = lastWordOn
+    ? state.play.ejected.map((entry) => round.assignments[entry.index]?.name ?? "")
+    : [];
+  const ejectedLine = recapEjectedLine(ejectedNames.filter(Boolean));
+  const guesser = [...state.play.ejected].reverse().find((entry) => entry.role === "imposter");
+  const guesserName = guesser ? round.assignments[guesser.index]?.name : null;
+  const guess =
+    lastWordOn && state.play.lastWordGuess !== null && guesserName
+      ? `<p class="guess-line">${escapeHtml(guesserName)} guessed: ${escapeHtml(state.play.lastWordGuess)}</p>`
+      : "";
   const rows = round.assignments
     .map(
       (a) => `
@@ -293,13 +325,150 @@ function recapView(state: AppState): string {
       ${quitButton()}
       <div class="recap-block">
         ${wordBlock}
+        ${winner}
         ${troll ? `<p class="troll-line">${escapeHtml(troll)}</p>` : ""}
         ${teamLine}
+        ${ejectedLine ? `<p class="ejected-line">${escapeHtml(ejectedLine)}</p>` : ""}
+        ${guess}
         <ul class="recap-list">${rows}</ul>
       </div>
       <div class="actions">
         <button class="primary-btn" type="button" data-action="new-round">New round</button>
         <button class="secondary-btn" type="button" data-action="setup">Setup</button>
+      </div>
+    </section>
+  `;
+}
+
+function voteView(state: AppState): string {
+  const round = state.round;
+  const vote = state.play.vote;
+  if (!round || !vote) return "";
+  const voterAssignmentIndex = state.play.aliveIndexes[vote.voterIndex];
+  if (voterAssignmentIndex === undefined) return "";
+  const voter = round.assignments[voterAssignmentIndex];
+  if (!voter) return "";
+  const skin = skinForSlot(voterAssignmentIndex);
+  const nextOn = vote.selectedIndex !== null;
+  const prompt = votePrompt(vote.tiedIndexes);
+  const targets = voteTargets(state.play.aliveIndexes, voterAssignmentIndex, vote.tiedIndexes);
+  const picks = targets
+    .map((index) => {
+      const assignment = round.assignments[index];
+      if (!assignment) return "";
+      const selected = vote.selectedIndex === index;
+      return `
+        <button
+          class="vote-pick${selected ? " is-selected" : ""}"
+          type="button"
+          data-action="vote-pick"
+          data-index="${index}"
+          aria-pressed="${selected ? "true" : "false"}"
+        >
+          <span class="fit-line">${escapeHtml(assignment.name)}</span>
+        </button>
+      `;
+    })
+    .join("");
+  const helper = nextOn
+    ? "Pass the device to the next player."
+    : "Flip your card, pick someone, then pass.";
+  return `
+    <section class="screen vote"${state.confirmQuit ? " inert" : ""}>
+      ${quitButton()}
+      <div class="card-scene">
+        <div class="card ${vote.faceDown ? "" : "is-flipped"}">
+          <div class="card-inner">
+            <button
+              class="card-face back skin skin-${skin.color} pattern-${skin.pattern} skin-ink-${skin.ink}"
+              type="button"
+              data-action="flip"
+              ${vote.faceDown ? 'aria-label="Tap to vote"' : 'aria-hidden="true"'}
+            >
+              <p class="card-name fit-line">${escapeHtml(voter.name)}</p>
+              <p class="card-prompt">${escapeHtml(prompt)}</p>
+            </button>
+            <div class="card-face front skin skin-${skin.color} pattern-${skin.pattern} skin-ink-${skin.ink}" ${vote.faceDown ? 'aria-hidden="true"' : ""}>
+              <div class="vote-list">${picks}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="full-btn" type="button" data-action="next" ${nextOn ? "" : "disabled"} aria-disabled="${nextOn ? "false" : "true"}">Next</button>
+      <p class="helper">${helper}</p>
+    </section>
+  `;
+}
+
+function ejectView(state: AppState): string {
+  const round = state.round;
+  const eject = state.play.eject;
+  if (!round || !eject) return "";
+  const assignment = round.assignments[eject.index];
+  if (!assignment) return "";
+  const skin = skinForSlot(eject.index);
+  const remainingRoles = state.play.aliveIndexes
+    .filter((index) => index !== eject.index)
+    .map((index) => round.assignments[index]?.role ?? "civilian");
+  const verdict = ejectVerdictLine(assignment.name, assignment.role, remainingRoles);
+  const daLine = ejectDoubleAgentLine(assignment.name);
+  const falling = eject.phase === "falling";
+  const isDa = assignment.role === "doubleAgent";
+  let copy = "";
+  if (!falling) {
+    if (isDa && eject.phase === "verdict") {
+      copy = `<p class="eject-verdict">${escapeHtml(verdict)}</p>`;
+    } else if (isDa && eject.phase === "daReveal") {
+      copy = `
+        <p class="eject-verdict is-leaving">${escapeHtml(verdict)}</p>
+        <p class="eject-verdict is-entering">${escapeHtml(daLine)}</p>
+      `;
+    } else if (isDa) {
+      copy = `<p class="eject-verdict">${escapeHtml(daLine)}</p>`;
+    } else {
+      copy = `<p class="eject-verdict">${escapeHtml(verdict)}</p>`;
+    }
+  }
+  return `
+    <section class="screen eject"${state.confirmQuit ? " inert" : ""}>
+      ${quitButton()}
+      <div class="eject-stage">
+        <div class="eject-card card-face back skin skin-${skin.color} pattern-${skin.pattern} skin-ink-${skin.ink}${falling ? " is-falling" : " is-gone"}">
+          <p class="card-name fit-line">${escapeHtml(assignment.name)}</p>
+        </div>
+        <div class="eject-copy">${copy}</div>
+      </div>
+      ${
+        eject.phase === "ready"
+          ? `<button class="full-btn" type="button" data-action="eject-continue">Continue</button>`
+          : ""
+      }
+    </section>
+  `;
+}
+
+function lastWordView(state: AppState): string {
+  const round = state.round;
+  const lastWord = state.play.lastWord;
+  if (!round || !lastWord) return "";
+  const guesser = round.assignments[lastWord.guesserIndex];
+  if (!guesser) return "";
+  return `
+    <section class="screen last-word"${state.confirmQuit ? " inert" : ""}>
+      ${quitButton()}
+      <div class="last-word-block">
+        <p class="last-word-prompt fit-line">${escapeHtml(guesser.name)}, guess the word.</p>
+        <input
+          id="last-word-guess"
+          type="text"
+          maxlength="40"
+          autocomplete="off"
+          spellcheck="false"
+          value="${escapeHtml(lastWord.draft)}"
+          data-action="last-word"
+          aria-label="Guess the word"
+        />
+        <button class="primary-btn" type="button" data-action="guess">Guess</button>
       </div>
     </section>
   `;
@@ -314,6 +483,12 @@ export function renderApp(game: GameController): string {
         ? flipView(state)
         : state.screen === "start"
           ? startView(state)
-          : recapView(state);
+          : state.screen === "vote"
+            ? voteView(state)
+            : state.screen === "eject"
+              ? ejectView(state)
+              : state.screen === "lastWord"
+                ? lastWordView(state)
+                : recapView(state);
   return `${body}${state.confirmQuit ? confirmModal() : ""}`;
 }

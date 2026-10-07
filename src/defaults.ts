@@ -3,7 +3,7 @@ import { categoryIds } from "./pack.ts";
 import { autoImposterCount } from "./imposters.ts";
 import { emptyDeck } from "./deck.ts";
 import { MIN_PLAYERS } from "./types.ts";
-import type { AppState, SetupState, WordPack } from "./types.ts";
+import type { AppState, PlayState, SetupState, WordPack } from "./types.ts";
 
 export function defaultSetup(pack: WordPack): SetupState {
   const names = emptyNameSlots();
@@ -21,7 +21,25 @@ export function defaultSetup(pack: WordPack): SetupState {
       reverse: true,
       doubleAgent: false,
     },
+    lastWordEnabled: false,
   };
+}
+
+export function initPlay(playerCount: number): PlayState {
+  return {
+    aliveIndexes: Array.from({ length: playerCount }, (_, i) => i),
+    civilianEjectCount: 0,
+    ejected: [],
+    vote: null,
+    eject: null,
+    lastWord: null,
+    outcome: null,
+    lastWordGuess: null,
+  };
+}
+
+export function emptyPlay(): PlayState {
+  return initPlay(0);
 }
 
 export function defaultAppState(pack: WordPack): AppState {
@@ -31,6 +49,7 @@ export function defaultAppState(pack: WordPack): AppState {
     round: null,
     deck: emptyDeck(),
     flip: { playerIndex: 0, faceDown: true, hasFlipped: false },
+    play: emptyPlay(),
     confirmQuit: false,
   };
 }

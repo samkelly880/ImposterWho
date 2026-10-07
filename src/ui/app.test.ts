@@ -64,6 +64,76 @@ function startedGame(): GameController {
   return g;
 }
 
+describe("Last Word paint focus", () => {
+  it("keeps the Last Word guess caret after paint", () => {
+    const g = game();
+    g.setName(0, "Ada");
+    g.setName(1, "Bob");
+    g.setName(2, "Cara");
+    g.setLastWord(true);
+    g.startRound();
+    for (let i = 0; i < 3; i++) {
+      g.tapCard();
+      g.tapCard();
+      g.nextPlayer();
+    }
+    g.openVote();
+    for (let i = 0; i < 3; i++) {
+      const voter = g.state.play.aliveIndexes[g.state.play.vote!.voterIndex]!;
+      g.selectVoteTarget(voter === 1 ? 0 : 1);
+      g.nextPlayer();
+    }
+    while (g.state.play.eject && g.state.play.eject.phase !== "ready") {
+      g.advanceEjectPhase();
+    }
+    g.continueEject();
+    expect(g.state.screen).toBe("lastWord");
+    g.setLastWordDraft("ic");
+    const live = {
+      id: "last-word-guess",
+      selectionStart: 2,
+      selectionEnd: 2,
+    };
+    const restored = {
+      focused: false,
+      preventScroll: false,
+      selectionStart: 0,
+      selectionEnd: 0,
+      focus(options?: { preventScroll?: boolean }) {
+        this.focused = true;
+        this.preventScroll = Boolean(options?.preventScroll);
+      },
+      setSelectionRange(start: number, end: number) {
+        this.selectionStart = start;
+        this.selectionEnd = end;
+      },
+    };
+    const root = {
+      html: "",
+      replaced: false,
+      contains(node: object) {
+        if (this.replaced) return false;
+        return node === live;
+      },
+      querySelector(selector: string) {
+        return selector === "#last-word-guess" ? restored : null;
+      },
+      set innerHTML(value: string) {
+        this.html = value;
+        this.replaced = true;
+      },
+      get innerHTML() {
+        return this.html;
+      },
+    };
+    paint(root, g, live);
+    expect(root.html).toContain('id="last-word-guess"');
+    expect(restored.focused).toBe(true);
+    expect(restored.selectionStart).toBe(2);
+    expect(restored.selectionEnd).toBe(2);
+  });
+});
+
 describe("end-round dialog focus", () => {
   it("moves focus to Keep playing when the dialog opens", () => {
     const keep = {

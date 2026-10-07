@@ -120,9 +120,54 @@ export function paint(
   fitLineElements(root);
 }
 
+function prefersReducedMotion(): boolean {
+  return (
+    typeof globalThis.matchMedia === "function" &&
+    globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
 export function mount(root: HTMLElement, game: GameController): void {
+  let ejectTimer: ReturnType<typeof globalThis.setTimeout> | undefined;
+  const clearEjectTimer = (): void => {
+    if (ejectTimer !== undefined) {
+      globalThis.clearTimeout(ejectTimer);
+      ejectTimer = undefined;
+    }
+  };
+  const armEject = (): void => {
+    clearEjectTimer();
+    const eject = game.state.play.eject;
+    if (game.state.screen !== "eject" || !eject) return;
+    const phase = eject.phase;
+    if (phase === "falling") {
+      if (prefersReducedMotion()) {
+        game.advanceEjectPhase();
+        paint(root, game, document.activeElement);
+        armEject();
+        return;
+      }
+      ejectTimer = globalThis.setTimeout(() => {
+        if (game.state.play.eject?.phase === "falling") {
+          game.advanceEjectPhase();
+          paint(root, game, document.activeElement);
+          armEject();
+        }
+      }, 1600);
+      return;
+    }
+    if (phase === "verdict" || phase === "daReveal") {
+      ejectTimer = globalThis.setTimeout(() => {
+        if (game.state.play.eject?.phase !== phase) return;
+        game.advanceEjectPhase();
+        paint(root, game, document.activeElement);
+        armEject();
+      }, 700);
+    }
+  };
   const redraw = (): void => {
     paint(root, game, document.activeElement);
+    armEject();
   };
   const refit = (): void => {
     fitLineElements(root);
@@ -144,6 +189,10 @@ export function mount(root: HTMLElement, game: GameController): void {
       if (Number.isInteger(index)) game.setName(index, target.value);
       redraw();
     }
+    if (target.dataset.action === "last-word") {
+      game.setLastWordDraft(target.value);
+      redraw();
+    }
   });
 
   root.addEventListener("change", (event) => {
@@ -152,6 +201,7 @@ export function mount(root: HTMLElement, game: GameController): void {
     const action = target.dataset.action;
     if (action === "toggle-auto") game.setAuto(target.checked);
     if (action === "toggle-hints") game.setHints(target.checked);
+    if (action === "toggle-last-word") game.setLastWord(target.checked);
     if (action === "toggle-troll") game.setTroll(target.checked);
     if (action === "toggle-category" && target.dataset.id) {
       game.toggleCategory(target.dataset.id);
@@ -194,9 +244,23 @@ export function mount(root: HTMLElement, game: GameController): void {
     if (action === "new-round") game.newRound();
     if (action === "setup") game.backToSetup();
     if (action === "recap") game.openRecap();
+    if (action === "vote") game.openVote();
+    if (action === "vote-pick" && Number.isInteger(index)) game.selectVoteTarget(index);
+    if (action === "eject-continue") game.continueEject();
+    if (action === "guess") game.submitLastWord();
     if (action === "quit") game.requestQuit();
     if (action === "cancel-quit") game.cancelQuit();
     if (action === "confirm-quit") game.confirmQuit();
+    redraw();
+  });
+
+  root.addEventListener("animationend", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (!target.classList.contains("eject-card")) return;
+    if (event.animationName !== "eject-fall") return;
+    if (game.state.play.eject?.phase !== "falling") return;
+    game.advanceEjectPhase();
     redraw();
   });
 
