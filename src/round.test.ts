@@ -19,7 +19,7 @@ import {
   starterWeights,
   trollRecapLine,
 } from "./round.ts";
-import type { SetupState, TrollRuleId, TrollRules } from "./types.ts";
+import { TROLL_CHANCE, type SetupState, type TrollRuleId, type TrollRules } from "./types.ts";
 
 function rules(partial: Partial<TrollRules> = {}): TrollRules {
   return {
@@ -52,22 +52,22 @@ describe("troll roll", () => {
     expect(rollTroll(true, off, () => 0)).toBe(null);
   });
 
-  it("does not fire when the roll is 10% or higher", () => {
+  it("does not fire when the roll is 3.33% or higher", () => {
     const armed = rules({ allImposters: true, noImposters: true, reverse: true });
-    expect(rollTroll(true, armed, createQueueRandom([0.1]))).toBe(null);
+    expect(rollTroll(true, armed, createQueueRandom([TROLL_CHANCE]))).toBe(null);
   });
 
-  it("fires at 10% and picks one enabled rule uniformly", () => {
+  it("fires below 3.33% and picks one enabled rule uniformly", () => {
     const armed = rules({ allImposters: true, reverse: true });
-    expect(rollTroll(true, armed, createQueueRandom([0.099, 0]))).toBe("allImposters");
+    expect(rollTroll(true, armed, createQueueRandom([0.0332, 0]))).toBe("allImposters");
     expect(rollTroll(true, armed, createQueueRandom([0, 0.5]))).toBe("reverse");
   });
 
-  it("includes Double Agent in the armed list and 10% pick", () => {
+  it("includes Double Agent in the armed list and 3.33% pick", () => {
     const onlyDa = rules({ doubleAgent: true });
     expect(armedTrollRules(true, onlyDa)).toEqual(["doubleAgent"]);
     expect(rollTroll(true, onlyDa, createQueueRandom([0, 0]))).toBe("doubleAgent");
-    expect(rollTroll(true, onlyDa, createQueueRandom([0.1]))).toBe(null);
+    expect(rollTroll(true, onlyDa, createQueueRandom([TROLL_CHANCE]))).toBe(null);
     const mixed = rules({ allImposters: true, reverse: true, doubleAgent: true });
     expect(armedTrollRules(true, mixed)).toEqual([
       "allImposters",

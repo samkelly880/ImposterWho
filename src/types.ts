@@ -86,6 +86,6 @@ export const MAX_PLAYERS = 12;
 export const DEFAULT_PLAYER_SLOTS = 4;
 export const MIN_NAME_LENGTH = 1;
 export const MAX_NAME_LENGTH = 16;
-export const TROLL_CHANCE = 0.1;
+export const TROLL_CHANCE = 0.0333;
 export const CIVILIAN_STARTER_WEIGHT = 1;
 export const IMPOSTER_STARTER_WEIGHT = 0.5;
