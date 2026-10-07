@@ -1,8 +1,32 @@
 import { describe, expect, it } from "./testkit.ts";
 import { defaultSetup } from "./defaults.ts";
-import { pack } from "./pack.ts";
+import { categoryIds, pack } from "./pack.ts";
 import { loadSetup, memoryStorage, saveSetup } from "./storage.ts";
 import { STORAGE_KEY } from "./types.ts";
+
+const ORIGINAL_EIGHT = [
+  "food",
+  "animals",
+  "places",
+  "jobs",
+  "sports",
+  "movies",
+  "household",
+  "school",
+];
+
+function payload(enabledCategoryIds: string[]) {
+  return {
+    names: ["Ada", "Bob", "Cara", ""],
+    accordion: { players: false, categories: true, modes: true },
+    enabledCategoryIds,
+    autoImposters: false,
+    imposterCount: 2,
+    hintsEnabled: false,
+    trollEnabled: true,
+    trollRules: { allImposters: true, noImposters: false, reverse: true },
+  };
+}
 
 describe("setup persistence", () => {
   it("round-trips names, accordion, categories, auto, count, hints, and troll", () => {
@@ -82,5 +106,49 @@ describe("setup persistence", () => {
     const storage = memoryStorage();
     saveSetup(defaultSetup(pack), storage);
     expect(storage.getItem(STORAGE_KEY)).not.toContain("usedByCategory");
+  });
+
+  it("enables all sixteen pack categories on a fresh default setup", () => {
+    expect(defaultSetup(pack).enabledCategoryIds).toEqual(categoryIds(pack));
+    expect(defaultSetup(pack).enabledCategoryIds).toHaveLength(16);
+  });
+
+  it("migrates a pre-expansion full save of the original eight to all pack categories", () => {
+    const storage = memoryStorage({
+      [STORAGE_KEY]: JSON.stringify(payload(ORIGINAL_EIGHT)),
+    });
+    expect(loadSetup(pack, storage).enabledCategoryIds).toEqual(categoryIds(pack));
+  });
+
+  it("migrates the original eight even when saved in a different order", () => {
+    const shuffled = [
+      "school",
+      "food",
+      "movies",
+      "animals",
+      "household",
+      "jobs",
+      "places",
+      "sports",
+    ];
+    const storage = memoryStorage({
+      [STORAGE_KEY]: JSON.stringify(payload(shuffled)),
+    });
+    expect(loadSetup(pack, storage).enabledCategoryIds).toEqual(categoryIds(pack));
+  });
+
+  it("leaves a subset of categories unchanged", () => {
+    const storage = memoryStorage({
+      [STORAGE_KEY]: JSON.stringify(payload(["food", "jobs"])),
+    });
+    expect(loadSetup(pack, storage).enabledCategoryIds).toEqual(["food", "jobs"]);
+  });
+
+  it("does not re-enable new categories after a later save includes one", () => {
+    const enabled = [...ORIGINAL_EIGHT, "music"];
+    const storage = memoryStorage({
+      [STORAGE_KEY]: JSON.stringify(payload(enabled)),
+    });
+    expect(loadSetup(pack, storage).enabledCategoryIds).toEqual(enabled);
   });
 });
