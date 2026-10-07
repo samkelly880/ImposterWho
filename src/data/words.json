@@ -205,7 +205,7 @@
         { "word": "Car", "hints": ["Steering", "Road"] },
         { "word": "Bus", "hints": ["Route", "Passengers"] },
         { "word": "Train", "hints": ["Tracks", "Station"] },
-        { "word": "Plane", "hints": ["Wings", "Cabin"] },
+        { "word": "Plane", "hints": ["Wings", "Sky"] },
         { "word": "Bike", "hints": ["Pedal", "Chain"] },
         { "word": "Ferry", "hints": ["Wharf", "Crossing"] },
         { "word": "Boat", "hints": ["Sail", "Anchor"] },
@@ -217,7 +217,7 @@
         { "word": "Skateboard", "hints": ["Tricks", "Ramp"] },
         { "word": "Ambulance", "hints": ["Siren", "Emergency"] },
         { "word": "Tractor", "hints": ["Field", "Crops"] },
-        { "word": "Submarine", "hints": ["Periscope", "Dive"] }
+        { "word": "Submarine", "hints": ["Water", "Dive"] }
       ]
     },
     {
@@ -227,14 +227,14 @@
         { "word": "Hoodie", "hints": ["Pocket", "Fleece"] },
         { "word": "Jeans", "hints": ["Denim", "Blue"] },
         { "word": "Sneakers", "hints": ["Laces", "Sport"] },
-        { "word": "T-shirt", "hints": ["Cotton", "Logo"] },
+        { "word": "T-shirt", "hints": ["Cotton", "Casual"] },
         { "word": "Socks", "hints": ["Pair", "Feet"] },
         { "word": "Hat", "hints": ["Brim", "Head"] },
         { "word": "Jacket", "hints": ["Zip", "Collar"] },
         { "word": "Scarf", "hints": ["Wool", "Wrap"] },
         { "word": "Gloves", "hints": ["Fingers", "Palms"] },
         { "word": "Dress", "hints": ["Formal", "Gown"] },
-        { "word": "Skirt", "hints": ["Pleats", "Twirl"] },
+        { "word": "Skirt", "hints": ["Girls", "Twirl"] },
         { "word": "Shorts", "hints": ["Summer", "Knees"] },
         { "word": "Sunglasses", "hints": ["Shade", "Tint"] },
         { "word": "Pyjamas", "hints": ["Bedtime", "Sleep"] },
@@ -272,7 +272,7 @@
         { "word": "Laptop", "hints": ["Portable", "Battery"] },
         { "word": "Wifi", "hints": ["Signal", "Router"] },
         { "word": "Headphones", "hints": ["Audio", "Ears"] },
-        { "word": "Tablet", "hints": ["Touch", "Glass"] },
+        { "word": "Tablet", "hints": ["Touch", "Swipe"] },
         { "word": "Keyboard", "hints": ["Type", "Keys"] },
         { "word": "Mouse", "hints": ["Click", "Cursor"] },
         { "word": "Camera", "hints": ["Photo", "Lens"] },
@@ -290,19 +290,19 @@
       "id": "holidays",
       "name": "Holidays",
       "words": [
-        { "word": "Christmas", "hints": ["Decorations", "Carols"] },
+        { "word": "Christmas", "hints": ["Decorations", "Snow"] },
         { "word": "Birthday", "hints": ["Cake", "Candles"] },
         { "word": "Halloween", "hints": ["Spooky", "Pumpkin"] },
         { "word": "Easter", "hints": ["Eggs", "Bunny"] },
         { "word": "Camping", "hints": ["Tent", "Campfire"] },
-        { "word": "Wedding", "hints": ["Rings", "Bride"] },
+        { "word": "Wedding", "hints": ["Rings", "Love"] },
         { "word": "New Year", "hints": ["Midnight", "Countdown"] },
         { "word": "Fireworks", "hints": ["Sparks", "Sky"] },
         { "word": "Present", "hints": ["Wrap", "Gift"] },
         { "word": "Sleepover", "hints": ["Friends", "Pillow"] },
         { "word": "Costume", "hints": ["Dress-up", "Mask"] },
         { "word": "Santa", "hints": ["Sleigh", "Chimney"] },
-        { "word": "Parade", "hints": ["Float", "March"] },
+        { "word": "Parade", "hints": ["Crowd", "March"] },
         { "word": "Picnic", "hints": ["Blanket", "Basket"] },
         { "word": "Cruise", "hints": ["Ship", "Ocean"] },
         { "word": "Balloon", "hints": ["Helium", "Pop"] }
@@ -349,7 +349,7 @@
         { "word": "Jester", "hints": ["Joke", "Bells"] },
         { "word": "Peasant", "hints": ["Village", "Farm"] },
         { "word": "Blacksmith", "hints": ["Hammer", "Forge"] },
-        { "word": "Tournament", "hints": ["Joust", "Contest"] }
+        { "word": "Tournament", "hints": ["Crowd", "Contest"] }
       ]
     }
   ]
