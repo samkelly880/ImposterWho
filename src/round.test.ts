@@ -8,6 +8,7 @@ import {
   armedTrollRules,
   assignRoles,
   canPressNext,
+  canSubmitVote,
   dealRound,
   ejectDoubleAgentLine,
   ejectVerdictLine,
@@ -379,6 +380,12 @@ describe("flip next gating", () => {
     flip = afterCardTap(flip);
     expect(flip.faceDown).toBe(true);
     expect(canPressNext(flip.hasFlipped, flip.faceDown)).toBe(true);
+  });
+
+  it("lets a vote submit after a look and a pick, even while face up", () => {
+    expect(canSubmitVote(false, 1)).toBe(false);
+    expect(canSubmitVote(true, null)).toBe(false);
+    expect(canSubmitVote(true, 1)).toBe(true);
   });
 });
 

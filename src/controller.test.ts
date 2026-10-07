@@ -150,7 +150,6 @@ function flipAll(game: GameController): void {
 function castBallot(game: GameController, target: number): void {
   game.tapCard();
   game.selectVoteTarget(target);
-  game.tapCard();
   expect(game.nextPlayer()).toBe(true);
 }
 
@@ -205,13 +204,26 @@ describe("Last Word controller", () => {
     expect(game.nextPlayer()).toBe(false);
     game.tapCard();
     expect(game.state.play.vote?.faceDown).toBe(false);
-    expect(game.nextPlayer()).toBe(false);
-    game.tapCard();
     expect(game.nextPlayer()).toBe(true);
     expect(game.state.play.vote?.voterIndex).toBe(1);
     expect(game.state.play.vote?.selectedIndex).toBe(null);
     expect(game.state.play.vote?.faceDown).toBe(true);
     expect(game.state.play.vote?.hasFlipped).toBe(false);
+  });
+
+  it("submits a face-up ballot and leaves the next voter face down", () => {
+    const game = namedGame(["Ada", "Bob", "Cara"]);
+    game.startRound();
+    flipAll(game);
+    game.openVote();
+    game.tapCard();
+    game.selectVoteTarget(1);
+    expect(game.state.play.vote?.faceDown).toBe(false);
+    expect(game.nextPlayer()).toBe(true);
+    expect(game.state.play.vote?.voterIndex).toBe(1);
+    expect(game.state.play.vote?.faceDown).toBe(true);
+    expect(game.state.play.vote?.selectedIndex).toBe(null);
+    expect(game.state.play.vote?.ballots).toEqual({ 0: 1 });
   });
 
   it("ejects a unique winner after the last ballot", () => {

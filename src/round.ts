@@ -300,6 +300,13 @@ export function canPressNext(hasFlipped: boolean, faceDown: boolean): boolean {
   return hasFlipped && faceDown;
 }
 
+export function canSubmitVote(
+  hasFlipped: boolean,
+  selectedIndex: number | null,
+): selectedIndex is number {
+  return hasFlipped && selectedIndex !== null;
+}
+
 export function afterCardTap(flip: { playerIndex: number; faceDown: boolean; hasFlipped: boolean }): {
   playerIndex: number;
   faceDown: boolean;

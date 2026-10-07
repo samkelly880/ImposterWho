@@ -468,7 +468,6 @@ describe("Last Word markup", () => {
       const voter = g.state.play.aliveIndexes[g.state.play.vote!.voterIndex]!;
       g.tapCard();
       g.selectVoteTarget(voter === target ? fallback : target);
-      g.tapCard();
       g.nextPlayer();
     }
   }
@@ -490,15 +489,12 @@ describe("Last Word markup", () => {
     g.openVote();
     g.tapCard();
     g.selectVoteTarget(1);
-    g.tapCard();
     g.nextPlayer();
     g.tapCard();
     g.selectVoteTarget(2);
-    g.tapCard();
     g.nextPlayer();
     g.tapCard();
     g.selectVoteTarget(0);
-    g.tapCard();
     g.nextPlayer();
     const html = renderApp(g);
     expect(html).toContain("Tied. Tap to vote.");
@@ -509,20 +505,21 @@ describe("Last Word markup", () => {
     expect(html).toMatch(/data-action="next"[^>]*disabled/);
   });
 
-  it("enables Next only after a pick is hidden", () => {
+  it("enables Next after a pick on the open card", () => {
     const g = lastWordGame();
     g.openVote();
-    expect(renderApp(g)).toContain("Flip your card, pick someone, then hide it to continue.");
+    expect(renderApp(g)).toContain("Flip your card, pick someone, then press Next.");
     expect(renderApp(g)).toContain('aria-disabled="true"');
     g.selectVoteTarget(1);
     expect(renderApp(g)).toContain('aria-disabled="true"');
     g.tapCard();
-    expect(renderApp(g)).toContain('aria-disabled="true"');
-    expect(renderApp(g)).toContain("Flip your card, pick someone, then hide it to continue.");
-    g.tapCard();
-    const html = renderApp(g);
-    expect(html).toContain('aria-disabled="false"');
-    expect(html).toContain("Pass the device to the next player.");
+    const open = renderApp(g);
+    expect(open).toMatch(/class="card is-flipped"/);
+    expect(open).toContain('data-action="vote-pick"');
+    expect(open).not.toMatch(/class="card-face front[^>]*data-action="flip"/);
+    expect(open).not.toMatch(/data-action="next" disabled/);
+    expect(open).toContain('aria-disabled="false"');
+    expect(open).toContain("Press Next to hide your vote and pass.");
   });
 
   it("shows kick-out copy for an imposter and a civilian", () => {

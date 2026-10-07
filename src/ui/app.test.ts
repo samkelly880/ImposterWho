@@ -82,7 +82,6 @@ describe("Last Word paint focus", () => {
       const voter = g.state.play.aliveIndexes[g.state.play.vote!.voterIndex]!;
       g.tapCard();
       g.selectVoteTarget(voter === 1 ? 0 : 1);
-      g.tapCard();
       g.nextPlayer();
     }
     while (g.state.play.eject && g.state.play.eject.phase !== "ready") {
@@ -154,7 +153,6 @@ describe("kick-out scene key", () => {
       const voter = g.state.play.aliveIndexes[g.state.play.vote!.voterIndex]!;
       g.tapCard();
       g.selectVoteTarget(voter === 1 ? 0 : 1);
-      g.tapCard();
       g.nextPlayer();
     }
     expect(g.state.screen).toBe("eject");

@@ -4,6 +4,7 @@ import { effectivePlayerCount } from "../names.ts";
 import { clampImposterCount } from "../imposters.ts";
 import {
   canPressNext,
+  canSubmitVote,
   ejectDoubleAgentLine,
   ejectVerdictLine,
   formatImposterLine,
@@ -349,7 +350,7 @@ function voteView(state: AppState): string {
   const voter = round.assignments[voterAssignmentIndex];
   if (!voter) return "";
   const skin = skinForSlot(voterAssignmentIndex);
-  const nextOn = vote.selectedIndex !== null && canPressNext(vote.hasFlipped, vote.faceDown);
+  const nextOn = canSubmitVote(vote.hasFlipped, vote.selectedIndex);
   const prompt = votePrompt(vote.tiedIndexes);
   const targets = voteTargets(state.play.aliveIndexes, voterAssignmentIndex, vote.tiedIndexes);
   const picks = targets
@@ -371,8 +372,8 @@ function voteView(state: AppState): string {
     })
     .join("");
   const helper = nextOn
-    ? "Pass the device to the next player."
-    : "Flip your card, pick someone, then hide it to continue.";
+    ? "Press Next to hide your vote and pass."
+    : "Flip your card, pick someone, then press Next.";
   return `
     <section class="screen vote"${state.confirmQuit ? " inert" : ""}>
       ${quitButton()}

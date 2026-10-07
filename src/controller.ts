@@ -5,6 +5,7 @@ import { pack } from "./pack.ts";
 import {
   afterCardTap,
   canPressNext,
+  canSubmitVote,
   dealRound,
   gainsExtraClueRound,
   isImposterTeam,
@@ -221,8 +222,7 @@ export class GameController {
   private nextVoter(): boolean {
     const vote = this.state.play.vote;
     const round = this.state.round;
-    if (!vote || !round || vote.selectedIndex === null) return false;
-    if (!canPressNext(vote.hasFlipped, vote.faceDown)) return false;
+    if (!vote || !round || !canSubmitVote(vote.hasFlipped, vote.selectedIndex)) return false;
     const voterAssignment = this.state.play.aliveIndexes[vote.voterIndex];
     if (voterAssignment === undefined) return false;
     const ballots = { ...vote.ballots, [voterAssignment]: vote.selectedIndex };
