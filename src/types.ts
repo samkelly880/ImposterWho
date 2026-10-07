@@ -1,6 +1,6 @@
-export type Role = "civilian" | "imposter";
+export type Role = "civilian" | "imposter" | "doubleAgent";
 
-export type TrollRuleId = "allImposters" | "noImposters" | "reverse";
+export type TrollRuleId = "allImposters" | "noImposters" | "reverse" | "doubleAgent";
 
 export type WordEntry = {
   word: string;
@@ -76,6 +76,7 @@ export const TROLL_RULES: TrollRuleId[] = [
   "allImposters",
   "noImposters",
   "reverse",
+  "doubleAgent",
 ];
 
 export const STORAGE_KEY = "imposter-who-setup";

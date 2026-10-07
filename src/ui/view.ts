@@ -2,13 +2,14 @@ import type { GameController } from "../controller.ts";
 import { escapeHtml } from "../html.ts";
 import { effectivePlayerCount } from "../names.ts";
 import { clampImposterCount } from "../imposters.ts";
-import { canPressNext, trollRecapLine } from "../round.ts";
+import { canPressNext, formatImposterLine, trollRecapLine } from "../round.ts";
 import { skinForSlot } from "../skins.ts";
 import {
   MAX_PLAYERS,
   MIN_PLAYERS,
   type AppState,
   type Assignment,
+  type Role,
   type TrollRuleId,
 } from "../types.ts";
 import { validateSetup, visibleNameError } from "../validation.ts";
@@ -154,6 +155,7 @@ function setupView(
                   ${trollRule("allImposters", "All Imposters")}
                   ${trollRule("noImposters", "No Imposters")}
                   ${trollRule("reverse", "Reverse")}
+                  ${trollRule("doubleAgent", "Double Agent")}
                 </div>`
               : ""
           }
@@ -170,11 +172,23 @@ function assignmentCopy(
   assignment: Assignment,
   secretWord: string | null,
   hintsEnabled: boolean,
+  assignments: readonly Assignment[],
 ): string {
   if (assignment.role === "civilian") {
     return `
       <p class="card-kicker">The word is</p>
       <p class="card-word fit-line">${escapeHtml(secretWord ?? "")}</p>
+    `;
+  }
+  if (assignment.role === "doubleAgent") {
+    const imposters = assignments
+      .filter((other) => other.role === "imposter")
+      .map((other) => other.name);
+    return `
+      <p class="card-kicker">The word is</p>
+      <p class="card-word fit-line">${escapeHtml(secretWord ?? "")}</p>
+      <p class="card-da-role">You are the double agent.</p>
+      <p class="card-da-intel fit-line">${escapeHtml(formatImposterLine(imposters))}</p>
     `;
   }
   const hint =
@@ -185,6 +199,12 @@ function assignmentCopy(
     <p class="card-role">You are the imposter.</p>
     ${hint}
   `;
+}
+
+function recapRoleLabel(role: Role): string {
+  if (role === "imposter") return "Imposter";
+  if (role === "doubleAgent") return "Double Agent";
+  return "Civilian";
 }
 
 function flipView(state: AppState): string {
@@ -214,7 +234,7 @@ function flipView(state: AppState): string {
               <p class="card-prompt">Tap to flip.</p>
             </div>
             <div class="card-face front${frontRole} skin skin-${skin.color} pattern-${skin.pattern} skin-ink-${skin.ink}" ${state.flip.faceDown ? "aria-hidden=\"true\"" : ""}>
-              ${assignmentCopy(assignment, round.secretWord, state.setup.hintsEnabled)}
+              ${assignmentCopy(assignment, round.secretWord, state.setup.hintsEnabled, round.assignments)}
             </div>
           </div>
         </button>
@@ -254,12 +274,16 @@ function recapView(state: AppState): string {
     ? `<p class="hint">The word was</p><p class="recap-word fit-line">${escapeHtml(round.secretWord)}</p>`
     : `<p class="recap-word fit-line">This round had no secret word.</p>`;
   const troll = trollRecapLine(round.trollRule);
+  const teamLine =
+    round.trollRule === "doubleAgent"
+      ? `<p class="troll-line">The double agent was on the imposters' team.</p>`
+      : "";
   const rows = round.assignments
     .map(
       (a) => `
         <li>
           <span>${escapeHtml(a.name)}</span>
-          <span>${a.role === "imposter" ? "Imposter" : "Civilian"}</span>
+          <span>${recapRoleLabel(a.role)}</span>
         </li>
       `,
     )
@@ -270,6 +294,7 @@ function recapView(state: AppState): string {
       <div class="recap-block">
         ${wordBlock}
         ${troll ? `<p class="troll-line">${escapeHtml(troll)}</p>` : ""}
+        ${teamLine}
         <ul class="recap-list">${rows}</ul>
       </div>
       <div class="actions">

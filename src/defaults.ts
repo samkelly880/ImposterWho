@@ -19,6 +19,7 @@ export function defaultSetup(pack: WordPack): SetupState {
       allImposters: true,
       noImposters: true,
       reverse: true,
+      doubleAgent: false,
     },
   };
 }
