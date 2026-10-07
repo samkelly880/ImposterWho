@@ -1,0 +1,150 @@
+.skin {
+  color: var(--ink);
+}
+
+.skin-ink-white {
+  --ink: #fff;
+}
+
+.skin-ink-black {
+  --ink: #161616;
+}
+
+.skin-blue {
+  --fill: #1f5eff;
+}
+
+.skin-green {
+  --fill: #1f8a4c;
+}
+
+.skin-red {
+  --fill: #d1263d;
+}
+
+.skin-purple {
+  --fill: #6b3fd6;
+}
+
+.skin-pink {
+  --fill: #f4a4c4;
+}
+
+.skin-brown {
+  --fill: #7a4a28;
+}
+
+.skin-white {
+  --fill: #f4f5f8;
+}
+
+.skin-orange {
+  --fill: #f08a24;
+}
+
+.skin-yellow {
+  --fill: #f2d04a;
+}
+
+.skin-grey {
+  --fill: #9aa1ad;
+}
+
+.pattern-stripes {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--fill) 0 18px,
+    color-mix(in srgb, var(--fill) 78%, #000) 18px 28px
+  );
+}
+
+.pattern-dots {
+  background:
+    radial-gradient(circle at 12px 12px, color-mix(in srgb, #fff 35%, transparent) 5px, transparent 6px) 0 0 / 28px 28px,
+    var(--fill);
+}
+
+.pattern-grid {
+  background:
+    linear-gradient(color-mix(in srgb, #000 18%, transparent) 2px, transparent 2px) 0 0 / 22px 22px,
+    linear-gradient(90deg, color-mix(in srgb, #000 18%, transparent) 2px, transparent 2px) 0 0 / 22px 22px,
+    var(--fill);
+}
+
+.pattern-chevron {
+  background:
+    repeating-linear-gradient(
+      135deg,
+      var(--fill) 0 16px,
+      color-mix(in srgb, #fff 18%, var(--fill)) 16px 24px
+    ),
+    repeating-linear-gradient(
+      45deg,
+      transparent 0 16px,
+      color-mix(in srgb, #000 12%, transparent) 16px 24px
+    );
+}
+
+.pattern-diamonds {
+  background:
+    repeating-linear-gradient(45deg, transparent 0 14px, color-mix(in srgb, #000 12%, transparent) 14px 18px),
+    repeating-linear-gradient(-45deg, transparent 0 14px, color-mix(in srgb, #fff 22%, transparent) 14px 18px),
+    var(--fill);
+}
+
+.pattern-waves {
+  background:
+    repeating-radial-gradient(
+      circle at 0 24px,
+      transparent 0 12px,
+      color-mix(in srgb, #000 16%, transparent) 12px 16px
+    ),
+    var(--fill);
+}
+
+.pattern-plus {
+  background:
+    linear-gradient(color-mix(in srgb, #1c1f27 12%, transparent) 2px, transparent 2px) center / 18px 18px,
+    linear-gradient(90deg, color-mix(in srgb, #1c1f27 12%, transparent) 2px, transparent 2px) center / 18px 18px,
+    var(--fill);
+}
+
+.pattern-zigzag {
+  background:
+    repeating-linear-gradient(
+      -20deg,
+      var(--fill) 0 12px,
+      color-mix(in srgb, #fff 22%, var(--fill)) 12px 20px
+    );
+}
+
+.pattern-circles {
+  background:
+    radial-gradient(circle at 20px 20px, color-mix(in srgb, #000 12%, transparent) 10px, transparent 11px) 0 0 / 40px 40px,
+    var(--fill);
+}
+
+.pattern-hatch {
+  background:
+    repeating-linear-gradient(
+      45deg,
+      var(--fill),
+      var(--fill) 10px,
+      color-mix(in srgb, #000 16%, var(--fill)) 10px 12px
+    );
+}
+
+.pattern-bars {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--fill) 0 22px,
+    color-mix(in srgb, #fff 20%, var(--fill)) 22px 30px
+  );
+}
+
+.pattern-hex {
+  background:
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, #fff 22%, transparent) 8px, transparent 9px) 0 0 / 26px 30px,
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, #000 16%, transparent) 8px, transparent 9px) 13px 15px / 26px 30px,
+    var(--fill);
+}
