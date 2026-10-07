@@ -35,11 +35,32 @@ function parseAccordion(value: unknown): AccordionState | null {
   };
 }
 
+const ORIGINAL_EIGHT = [
+  "food",
+  "animals",
+  "places",
+  "jobs",
+  "sports",
+  "movies",
+  "household",
+  "school",
+] as const;
+
+function sameIdSet(a: readonly string[], b: readonly string[]): boolean {
+  if (a.length !== b.length) return false;
+  const other = new Set(b);
+  return a.every((id) => other.has(id));
+}
+
 function parseEnabledCategories(value: unknown, pack: WordPack): string[] | null {
   if (!Array.isArray(value)) return null;
   if (!value.every((item) => typeof item === "string")) return null;
   const known = new Set(categoryIds(pack));
-  return value.filter((id) => known.has(id));
+  const filtered = value.filter((id) => known.has(id));
+  if (sameIdSet(filtered, ORIGINAL_EIGHT)) {
+    return categoryIds(pack);
+  }
+  return filtered;
 }
 
 function parseTrollRules(value: unknown): TrollRules | null {
