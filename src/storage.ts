@@ -101,6 +101,11 @@ export function parseSetup(raw: string | null, pack: WordPack): SetupState {
     }
     if (typeof parsed.hintsEnabled !== "boolean") return fallback;
     if (typeof parsed.trollEnabled !== "boolean") return fallback;
+    if ("lastWordEnabled" in parsed && typeof parsed.lastWordEnabled !== "boolean") {
+      return fallback;
+    }
+    const lastWordEnabled =
+      typeof parsed.lastWordEnabled === "boolean" ? parsed.lastWordEnabled : false;
     return syncImposterCount({
       names,
       accordion,
@@ -110,6 +115,7 @@ export function parseSetup(raw: string | null, pack: WordPack): SetupState {
       hintsEnabled: parsed.hintsEnabled,
       trollEnabled: parsed.trollEnabled,
       trollRules,
+      lastWordEnabled,
     });
   } catch {
     return fallback;

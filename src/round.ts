@@ -213,8 +213,97 @@ export function trollRecapLine(rule: TrollRuleId | null): string | null {
   return null;
 }
 
+export const EXTRA_CLUE_MIN_PLAYERS = 6;
+
+export function voteTargets(
+  aliveIndexes: readonly number[],
+  voterAssignmentIndex: number,
+  tiedIndexes: readonly number[] | null,
+): number[] {
+  const allowed = new Set(tiedIndexes ?? aliveIndexes);
+  return aliveIndexes.filter((index) => index !== voterAssignmentIndex && allowed.has(index));
+}
+
+export function tallyVotes(ballots: Readonly<Record<number, number>>): Map<number, number> {
+  const counts = new Map<number, number>();
+  for (const target of Object.values(ballots)) {
+    counts.set(target, (counts.get(target) ?? 0) + 1);
+  }
+  return counts;
+}
+
+export function topTiedIndexes(ballots: Readonly<Record<number, number>>): number[] {
+  const counts = tallyVotes(ballots);
+  let max = 0;
+  for (const n of counts.values()) max = Math.max(max, n);
+  return [...counts.entries()]
+    .filter(([, n]) => n === max)
+    .map(([index]) => index)
+    .sort((a, b) => a - b);
+}
+
+export function imposterArticle(
+  ejectedRole: Role,
+  remainingRoles: readonly Role[],
+): "the" | "an" {
+  if (ejectedRole !== "imposter") return "an";
+  const impostersLeft = remainingRoles.filter((role) => role === "imposter").length;
+  return impostersLeft === 0 ? "the" : "an";
+}
+
+export function ejectVerdictLine(
+  name: string,
+  role: Role,
+  remainingRoles: readonly Role[],
+): string {
+  if (role === "imposter") {
+    return `${name} was ${imposterArticle(role, remainingRoles)} imposter.`;
+  }
+  return `${name} was not an imposter.`;
+}
+
+export function ejectDoubleAgentLine(name: string): string {
+  return `...${name} was the double agent`;
+}
+
+export function lastWordMatches(guess: string, secretWord: string | null): boolean {
+  if (!secretWord) return false;
+  const normalize = (value: string) => value.trim().replace(/\s+/g, " ").toLowerCase();
+  const folded = normalize(guess);
+  return folded.length > 0 && folded === normalize(secretWord);
+}
+
+export function gainsExtraClueRound(
+  namedPlayerCount: number,
+  civilianEjectsBefore: number,
+  ejectedRole: Role,
+): boolean {
+  return (
+    ejectedRole === "civilian" &&
+    namedPlayerCount >= EXTRA_CLUE_MIN_PLAYERS &&
+    civilianEjectsBefore === 0
+  );
+}
+
+export function recapEjectedLine(names: readonly string[]): string | null {
+  if (names.length === 0) return null;
+  const [first, ...rest] = names;
+  return `Ejected: ${first}${rest.map((name) => `, then ${name}`).join("")}`;
+}
+
+export function votePrompt(tiedIndexes: readonly number[] | null): string {
+  return tiedIndexes ? "Tied. Tap to vote." : "Tap to vote.";
+}
+
 export function canPressNext(hasFlipped: boolean, faceDown: boolean): boolean {
   return hasFlipped && faceDown;
+}
+
+export function canSubmitVote(
+  hasFlipped: boolean,
+  selectedIndex: number | null,
+): selectedIndex is number {
+  return hasFlipped && selectedIndex !== null;
 }
 
 export function afterCardTap(flip: { playerIndex: number; faceDown: boolean; hasFlipped: boolean }): {

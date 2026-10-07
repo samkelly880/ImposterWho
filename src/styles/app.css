@@ -77,7 +77,10 @@ input:focus-visible {
 
 .screen.flip,
 .screen.start,
-.screen.recap {
+.screen.recap,
+.screen.vote,
+.screen.eject,
+.screen.last-word {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -532,6 +535,181 @@ input[type="checkbox"] {
 
 .sub-rules {
   margin: 8px 0 0 8px;
+}
+
+button.card-face {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.card.is-flipped .card-face.back {
+  pointer-events: none;
+}
+
+.vote-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.vote-pick {
+  width: 100%;
+  min-height: var(--tap);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.16);
+  color: inherit;
+  font-weight: 800;
+  padding: 0 12px;
+}
+
+.vote-pick.is-selected {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+
+.eject-stage {
+  position: relative;
+  overflow: hidden;
+  min-height: 420px;
+  margin: 36px 0 0;
+}
+
+.eject-card {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  max-width: 340px;
+  min-height: 420px;
+  margin: 0 auto;
+}
+
+.eject-card.is-falling {
+  animation: eject-fall 1.4s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+.eject-card.is-gone {
+  visibility: hidden;
+}
+
+.eject-copy {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  pointer-events: none;
+}
+
+.eject-verdict {
+  font-family: Fraunces, Georgia, serif;
+  font-size: clamp(1.6rem, 7vw, 2.2rem);
+  font-weight: 800;
+  text-align: center;
+  margin: 0;
+  line-height: 1.15;
+}
+
+.eject-verdict.is-leaving {
+  animation: eject-fade-out 0.7s ease forwards;
+}
+
+.eject-verdict.is-entering {
+  animation: eject-fade-in 0.7s ease forwards;
+}
+
+.winner-line,
+.ejected-line,
+.guess-line {
+  font-weight: 800;
+  margin: 0 0 8px;
+}
+
+.last-word-block {
+  margin-top: 64px;
+  text-align: center;
+}
+
+.last-word-prompt {
+  font-family: Fraunces, Georgia, serif;
+  font-size: clamp(1.8rem, 8vw, 2.6rem);
+  font-weight: 800;
+  line-height: 1.05;
+  margin: calc(0px - var(--fit-line-bleed, 0px)) 0 calc(18px - var(--fit-line-bleed, 0px));
+}
+
+.last-word-block input {
+  width: 100%;
+  min-height: var(--tap);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  padding: 0 12px;
+  background: #fff;
+  margin-bottom: 14px;
+}
+
+@keyframes eject-fall {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  18% {
+    transform: translate(10px, 26vh) rotate(8deg);
+  }
+  34% {
+    transform: translate(18px, 10vh) rotate(6deg);
+  }
+  52% {
+    transform: translate(40px, 28vh) rotate(14deg);
+  }
+  100% {
+    transform: translate(90px, 130vh) rotate(22deg);
+  }
+}
+
+@keyframes eject-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes eject-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eject-card.is-falling {
+    animation: none;
+    visibility: hidden;
+  }
+
+  .eject-verdict.is-leaving,
+  .eject-verdict.is-entering {
+    animation: none;
+  }
+
+  .eject-verdict.is-leaving {
+    opacity: 0;
+  }
+
+  .eject-verdict.is-entering {
+    opacity: 1;
+  }
 }
 
 .sr-only {

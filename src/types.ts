@@ -34,6 +34,7 @@ export type SetupState = {
   hintsEnabled: boolean;
   trollEnabled: boolean;
   trollRules: TrollRules;
+  lastWordEnabled: boolean;
 };
 
 export type Assignment = {
@@ -61,7 +62,46 @@ export type FlipUi = {
   hasFlipped: boolean;
 };
 
-export type Screen = "setup" | "flip" | "start" | "recap";
+export type Screen = "setup" | "flip" | "start" | "vote" | "eject" | "lastWord" | "recap";
+
+export type RoundOutcome = "imposters" | "civilians";
+
+export type EjectPhase = "falling" | "verdict" | "daReveal" | "ready";
+
+export type VoteState = {
+  voterIndex: number;
+  faceDown: boolean;
+  hasFlipped: boolean;
+  selectedIndex: number | null;
+  ballots: Record<number, number>;
+  tiedIndexes: number[] | null;
+};
+
+export type EjectState = {
+  index: number;
+  phase: EjectPhase;
+};
+
+export type LastWordUi = {
+  guesserIndex: number;
+  draft: string;
+};
+
+export type EjectedPlayer = {
+  index: number;
+  role: Role;
+};
+
+export type PlayState = {
+  aliveIndexes: number[];
+  civilianEjectCount: number;
+  ejected: EjectedPlayer[];
+  vote: VoteState | null;
+  eject: EjectState | null;
+  lastWord: LastWordUi | null;
+  outcome: RoundOutcome | null;
+  lastWordGuess: string | null;
+};
 
 export type AppState = {
   screen: Screen;
@@ -69,6 +109,7 @@ export type AppState = {
   round: RoundState | null;
   deck: DeckState;
   flip: FlipUi;
+  play: PlayState;
   confirmQuit: boolean;
 };
 

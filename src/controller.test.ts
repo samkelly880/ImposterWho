@@ -118,10 +118,292 @@ describe("GameController flow", () => {
     game.setName(0, "Ada");
     game.setHints(false);
     game.setTroll(true);
+    game.setLastWord(true);
     const again = new GameController({ storage, random: () => 0 });
     expect(again.state.setup.names[0]).toBe("Ada");
     expect(again.state.setup.hintsEnabled).toBe(false);
     expect(again.state.setup.trollEnabled).toBe(true);
     expect(again.state.setup.trollRules.allImposters).toBe(true);
+    expect(again.state.setup.lastWordEnabled).toBe(true);
+  });
+});
+
+function namedGame(names: string[], lastWord = true): GameController {
+  const game = seededController();
+  names.forEach((name, index) => {
+    if (index >= game.state.setup.names.length) game.addPlayer();
+    game.setName(index, name);
+  });
+  if (lastWord) game.setLastWord(true);
+  return game;
+}
+
+function flipAll(game: GameController): void {
+  const count = game.state.round!.assignments.length;
+  for (let i = 0; i < count; i++) {
+    game.tapCard();
+    game.tapCard();
+    game.nextPlayer();
+  }
+}
+
+function castBallot(game: GameController, target: number): void {
+  game.tapCard();
+  game.selectVoteTarget(target);
+  expect(game.nextPlayer()).toBe(true);
+}
+
+function unanimousVote(game: GameController, target: number, fallback: number): void {
+  const voters = game.state.play.aliveIndexes.length;
+  for (let i = 0; i < voters; i++) {
+    const voter = game.state.play.aliveIndexes[game.state.play.vote!.voterIndex]!;
+    castBallot(game, voter === target ? fallback : target);
+  }
+}
+
+function finishEject(game: GameController): void {
+  expect(game.state.screen).toBe("eject");
+  let guard = 0;
+  while (game.state.play.eject && game.state.play.eject.phase !== "ready" && guard < 8) {
+    game.advanceEjectPhase();
+    guard += 1;
+  }
+  expect(game.state.play.eject?.phase).toBe("ready");
+  game.continueEject();
+}
+
+describe("Last Word controller", () => {
+  it("keeps Reveal the round when Last Word is off", () => {
+    const game = namedGame(["Ada", "Bob", "Cara"], false);
+    expect(game.state.setup.lastWordEnabled).toBe(false);
+    game.startRound();
+    flipAll(game);
+    expect(game.state.screen).toBe("start");
+    expect(game.openVote()).toBe(false);
+    expect(game.state.screen).toBe("start");
+    game.openRecap();
+    expect(game.state.screen).toBe("recap");
+    expect(game.state.play.outcome).toBe(null);
+  });
+
+  it("opens a secret vote from Start when Last Word is on", () => {
+    const game = namedGame(["Ada", "Bob", "Cara"]);
+    game.startRound();
+    flipAll(game);
+    game.openRecap();
+    expect(game.state.screen).toBe("start");
+    expect(game.openVote()).toBe(true);
+    expect(game.state.screen).toBe("vote");
+    expect(game.state.play.vote?.voterIndex).toBe(0);
+    expect(game.state.play.vote?.tiedIndexes).toBe(null);
+    expect(game.nextPlayer()).toBe(false);
+    game.selectVoteTarget(0);
+    expect(game.state.play.vote?.selectedIndex).toBe(null);
+    game.selectVoteTarget(1);
+    expect(game.state.play.vote?.selectedIndex).toBe(1);
+    expect(game.nextPlayer()).toBe(false);
+    game.tapCard();
+    expect(game.state.play.vote?.faceDown).toBe(false);
+    expect(game.nextPlayer()).toBe(true);
+    expect(game.state.play.vote?.voterIndex).toBe(1);
+    expect(game.state.play.vote?.selectedIndex).toBe(null);
+    expect(game.state.play.vote?.faceDown).toBe(true);
+    expect(game.state.play.vote?.hasFlipped).toBe(false);
+  });
+
+  it("submits a face-up ballot and leaves the next voter face down", () => {
+    const game = namedGame(["Ada", "Bob", "Cara"]);
+    game.startRound();
+    flipAll(game);
+    game.openVote();
+    game.tapCard();
+    game.selectVoteTarget(1);
+    expect(game.state.play.vote?.faceDown).toBe(false);
+    expect(game.nextPlayer()).toBe(true);
+    expect(game.state.play.vote?.voterIndex).toBe(1);
+    expect(game.state.play.vote?.faceDown).toBe(true);
+    expect(game.state.play.vote?.selectedIndex).toBe(null);
+    expect(game.state.play.vote?.ballots).toEqual({ 0: 1 });
+  });
+
+  it("ejects a unique winner after the last ballot", () => {
+    const game = namedGame(["Ada", "Bob", "Cara"]);
+    game.startRound();
+    expect(game.state.round!.assignments[1]!.role).toBe("imposter");
+    flipAll(game);
+    game.openVote();
+    unanimousVote(game, 1, 0);
+    expect(game.state.screen).toBe("eject");
+    expect(game.state.play.eject?.index).toBe(1);
+  });
+
+  it("restarts a tie from the first alive player with only the tied names", () => {
+    const game = namedGame(["Ada", "Bob", "Cara"]);
+    game.startRound();
+    flipAll(game);
+    game.openVote();
+    castBallot(game, 1);
+    castBallot(game, 2);
+    castBallot(game, 0);
+    expect(game.state.screen).toBe("vote");
+    expect(game.state.play.vote?.voterIndex).toBe(0);
+    expect(game.state.play.vote?.ballots).toEqual({});
+    expect(game.state.play.vote?.tiedIndexes).toEqual([0, 1, 2]);
+    castBallot(game, 1);
+    castBallot(game, 2);
+    castBallot(game, 1);
+    expect(game.state.screen).toBe("eject");
+    expect(game.state.play.eject?.index).toBe(1);
+  });
+
+  it("awards imposters the win after a 5-player civilian eject", () => {
+    const game = namedGame(["Ada", "Bob", "Cara", "Dee", "Eve"]);
+    game.startRound();
+    expect(game.state.round!.assignments[0]!.role).toBe("civilian");
+    flipAll(game);
+    game.openVote();
+    unanimousVote(game, 0, 1);
+    finishEject(game);
+    expect(game.state.screen).toBe("recap");
+    expect(game.state.play.outcome).toBe("imposters");
+    expect(game.state.play.lastWordGuess).toBe(null);
+  });
+
+  it("runs one extra clue round after the first 6-player civilian eject", () => {
+    const game = namedGame(["Ada", "Bob", "Cara", "Dee", "Eve", "Fay"]);
+    game.startRound();
+    expect(game.state.round!.assignments.length).toBe(6);
+    expect(game.state.round!.assignments[0]!.role).toBe("civilian");
+    flipAll(game);
+    game.openVote();
+    unanimousVote(game, 0, 1);
+    finishEject(game);
+    expect(game.state.screen).toBe("start");
+    expect(game.state.play.aliveIndexes).toEqual([1, 2, 3, 4, 5]);
+    expect(game.state.play.aliveIndexes).toContain(game.state.round!.starterIndex);
+    expect(game.state.round!.starterIndex).not.toBe(0);
+    expect(game.state.play.civilianEjectCount).toBe(1);
+    game.openVote();
+    unanimousVote(game, 2, 1);
+    finishEject(game);
+    expect(game.state.screen).toBe("recap");
+    expect(game.state.play.outcome).toBe("imposters");
+  });
+
+  it("sends an ejected imposter to Last Word and scores a match or miss", () => {
+    const game = namedGame(["Ada", "Bob", "Cara"]);
+    game.startRound();
+    const word = game.state.round!.secretWord;
+    expect(word).not.toBe(null);
+    flipAll(game);
+    game.openVote();
+    unanimousVote(game, 1, 0);
+    finishEject(game);
+    expect(game.state.screen).toBe("lastWord");
+    expect(game.state.play.lastWord?.guesserIndex).toBe(1);
+    game.setLastWordDraft("nope");
+    game.submitLastWord();
+    expect(game.state.screen).toBe("recap");
+    expect(game.state.play.outcome).toBe("civilians");
+    expect(game.state.play.lastWordGuess).toBe("nope");
+
+    const again = namedGame(["Ada", "Bob", "Cara"]);
+    again.startRound();
+    const secret = again.state.round!.secretWord!;
+    flipAll(again);
+    again.openVote();
+    unanimousVote(again, 1, 0);
+    finishEject(again);
+    again.setLastWordDraft(`  ${secret.toUpperCase()}  `);
+    again.submitLastWord();
+    expect(again.state.play.outcome).toBe("imposters");
+
+    const blank = namedGame(["Ada", "Bob", "Cara"]);
+    blank.startRound();
+    flipAll(blank);
+    blank.openVote();
+    unanimousVote(blank, 1, 0);
+    finishEject(blank);
+    blank.submitLastWord();
+    expect(blank.state.play.outcome).toBe("civilians");
+    expect(blank.state.play.lastWordGuess).toBe("");
+  });
+
+  it("skips Last Word and the winner line when there were no imposters", () => {
+    const game = namedGame(["Ada", "Bob", "Cara", "Dee", "Eve", "Fay"]);
+    game.setTroll(true);
+    game.setTrollRule("allImposters", false);
+    game.setTrollRule("reverse", false);
+    game.setTrollRule("doubleAgent", false);
+    game.startRound();
+    expect(game.state.round?.trollRule).toBe("noImposters");
+    expect(game.state.round!.assignments.every((assignment) => assignment.role === "civilian")).toBe(
+      true,
+    );
+    flipAll(game);
+    game.openVote();
+    unanimousVote(game, 0, 1);
+    finishEject(game);
+    expect(game.state.screen).toBe("recap");
+    expect(game.state.play.outcome).toBe(null);
+    expect(game.state.play.lastWord).toBe(null);
+    expect(game.state.play.civilianEjectCount).toBe(1);
+  });
+
+  it("skips Last Word and the winner line when everybody is the imposter", () => {
+    const game = namedGame(["Ada", "Bob", "Cara"]);
+    game.setTroll(true);
+    game.setTrollRule("noImposters", false);
+    game.setTrollRule("reverse", false);
+    game.startRound();
+    expect(game.state.round?.trollRule).toBe("allImposters");
+    expect(game.state.round?.secretWord).toBe(null);
+    flipAll(game);
+    game.openVote();
+    unanimousVote(game, 0, 1);
+    finishEject(game);
+    expect(game.state.screen).toBe("recap");
+    expect(game.state.play.outcome).toBe(null);
+    expect(game.state.play.lastWord).toBe(null);
+  });
+
+  it("awards imposters the win when the Double Agent is ejected", () => {
+    const game = namedGame(["Ada", "Bob", "Cara", "Dee"]);
+    game.setTroll(true);
+    game.setTrollRule("allImposters", false);
+    game.setTrollRule("noImposters", false);
+    game.setTrollRule("reverse", false);
+    game.setTrollRule("doubleAgent", true);
+    game.startRound();
+    expect(game.state.round?.trollRule).toBe("doubleAgent");
+    expect(game.state.round!.assignments[0]!.role).toBe("doubleAgent");
+    flipAll(game);
+    game.openVote();
+    unanimousVote(game, 0, 1);
+    expect(game.state.play.eject?.phase).toBe("falling");
+    game.advanceEjectPhase();
+    expect(game.state.play.eject?.phase).toBe("verdict");
+    game.advanceEjectPhase();
+    expect(game.state.play.eject?.phase).toBe("daReveal");
+    game.advanceEjectPhase();
+    expect(game.state.play.eject?.phase).toBe("ready");
+    game.continueEject();
+    expect(game.state.screen).toBe("recap");
+    expect(game.state.play.outcome).toBe("imposters");
+    expect(game.state.play.lastWordGuess).toBe(null);
+  });
+
+  it("restores setup when quitting from the vote screen", () => {
+    const game = namedGame(["Ada", "Bob", "Cara"]);
+    game.startRound();
+    flipAll(game);
+    game.openVote();
+    game.requestQuit();
+    expect(game.state.confirmQuit).toBe(true);
+    game.confirmQuit();
+    expect(game.state.screen).toBe("setup");
+    expect(game.state.round).toBe(null);
+    expect(game.state.setup.names.slice(0, 3)).toEqual(["Ada", "Bob", "Cara"]);
+    expect(game.state.setup.lastWordEnabled).toBe(true);
   });
 });

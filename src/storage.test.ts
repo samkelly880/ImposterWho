@@ -29,7 +29,7 @@ function payload(enabledCategoryIds: string[]) {
 }
 
 describe("setup persistence", () => {
-  it("round-trips names, accordion, categories, auto, count, hints, and troll", () => {
+  it("round-trips names, accordion, categories, auto, count, hints, troll, and last word", () => {
     const storage = memoryStorage();
     const setup = {
       ...defaultSetup(pack),
@@ -40,6 +40,7 @@ describe("setup persistence", () => {
       imposterCount: 2,
       hintsEnabled: false,
       trollEnabled: true,
+      lastWordEnabled: true,
       trollRules: {
         allImposters: true,
         noImposters: false,
@@ -87,6 +88,43 @@ describe("setup persistence", () => {
           reverse: true,
           doubleAgent: "yes",
         },
+      }),
+    });
+    expect(loadSetup(pack, storage)).toEqual(defaultSetup(pack));
+  });
+
+  it("treats a missing lastWordEnabled key as off without discarding the rest of the save", () => {
+    const storage = memoryStorage({
+      [STORAGE_KEY]: JSON.stringify({
+        names: ["Ada", "Bob", "Cara", ""],
+        accordion: { players: false, categories: true, modes: true },
+        enabledCategoryIds: ["food", "jobs"],
+        autoImposters: false,
+        imposterCount: 2,
+        hintsEnabled: false,
+        trollEnabled: true,
+        trollRules: {
+          allImposters: true,
+          noImposters: false,
+          reverse: true,
+          doubleAgent: false,
+        },
+      }),
+    });
+    const loaded = loadSetup(pack, storage);
+    expect(loaded.names).toEqual(["Ada", "Bob", "Cara", ""]);
+    expect(loaded.trollEnabled).toBe(true);
+    expect(loaded.hintsEnabled).toBe(false);
+    expect(loaded.lastWordEnabled).toBe(false);
+    expect(loaded.imposterCount).toBe(2);
+  });
+
+  it("falls back to defaults when lastWordEnabled is present but not a boolean", () => {
+    const storage = memoryStorage({
+      [STORAGE_KEY]: JSON.stringify({
+        ...defaultSetup(pack),
+        names: ["Ada", "Bob", "Cara", ""],
+        lastWordEnabled: "yes",
       }),
     });
     expect(loadSetup(pack, storage)).toEqual(defaultSetup(pack));
