@@ -1,3 +1,4 @@
+import { emptyDeck } from "./deck.ts";
 import { defaultSetup } from "./defaults.ts";
 import { describe, expect, it } from "./testkit.ts";
 import { categoryById, pack, wordEntry } from "./pack.ts";
@@ -15,9 +16,303 @@ function norm(value: string): string {
   return value.trim().toLowerCase();
 }
 
+const ORIGINAL_EIGHT_WORDS: Record<string, string[]> = {
+  food: [
+    "Pizza",
+    "Sushi",
+    "Taco",
+    "Burger",
+    "Pancake",
+    "Popcorn",
+    "Banana",
+    "Chocolate",
+    "Soup",
+    "Sandwich",
+    "Ice cream",
+    "Pasta",
+    "Apple",
+    "Salad",
+    "Cookie",
+    "Waffle",
+  ],
+  animals: [
+    "Elephant",
+    "Penguin",
+    "Lion",
+    "Dolphin",
+    "Giraffe",
+    "Owl",
+    "Kangaroo",
+    "Turtle",
+    "Butterfly",
+    "Shark",
+    "Cat",
+    "Dog",
+    "Frog",
+    "Bee",
+    "Horse",
+    "Snake",
+  ],
+  places: [
+    "Beach",
+    "Library",
+    "Airport",
+    "Zoo",
+    "Museum",
+    "Hospital",
+    "Park",
+    "Stadium",
+    "Kitchen",
+    "Castle",
+    "Desert",
+    "Farm",
+    "Cinema",
+    "Bridge",
+    "Island",
+    "Mountain",
+  ],
+  jobs: [
+    "Doctor",
+    "Teacher",
+    "Chef",
+    "Pilot",
+    "Farmer",
+    "Firefighter",
+    "Dentist",
+    "Artist",
+    "Judge",
+    "Nurse",
+    "Mechanic",
+    "Baker",
+    "Police",
+    "Astronaut",
+    "Librarian",
+    "Plumber",
+  ],
+  sports: [
+    "Soccer",
+    "Basketball",
+    "Tennis",
+    "Baseball",
+    "Swimming",
+    "Golf",
+    "Volleyball",
+    "Hockey",
+    "Boxing",
+    "Skiing",
+    "Cricket",
+    "Rugby",
+    "Cycling",
+    "Bowling",
+    "Skating",
+    "Archery",
+  ],
+  movies: [
+    "Frozen",
+    "Shrek",
+    "Titanic",
+    "Jaws",
+    "Avatar",
+    "Cinderella",
+    "Batman",
+    "Superman",
+    "Toy Story",
+    "Finding Nemo",
+    "Star Wars",
+    "Harry Potter",
+    "Lion King",
+    "Jurassic Park",
+    "Spider-Man",
+    "Inside Out",
+  ],
+  household: [
+    "Couch",
+    "Fridge",
+    "Lamp",
+    "Vacuum",
+    "Pillow",
+    "Blanket",
+    "Toaster",
+    "Microwave",
+    "Broom",
+    "Clock",
+    "Mirror",
+    "Curtains",
+    "Table",
+    "Chair",
+    "Kettle",
+    "Dishwasher",
+  ],
+  school: [
+    "Pencil",
+    "Backpack",
+    "Homework",
+    "Recess",
+    "Cafeteria",
+    "Textbook",
+    "Chalkboard",
+    "Principal",
+    "Exam",
+    "Locker",
+    "Glue",
+    "Ruler",
+    "Compass",
+    "Calculator",
+    "Desk",
+    "Bell",
+  ],
+};
+
+const NEW_CATEGORY_WORDS: Record<string, string[]> = {
+  music: [
+    "Guitar",
+    "Piano",
+    "Drum",
+    "Violin",
+    "Microphone",
+    "Concert",
+    "Karaoke",
+    "Choir",
+    "Ukulele",
+    "Trumpet",
+    "Flute",
+    "Rap",
+    "Playlist",
+    "Band",
+    "Recorder",
+    "DJ",
+  ],
+  transport: [
+    "Car",
+    "Bus",
+    "Train",
+    "Plane",
+    "Bike",
+    "Ferry",
+    "Boat",
+    "Helicopter",
+    "Scooter",
+    "Truck",
+    "Taxi",
+    "Motorbike",
+    "Skateboard",
+    "Ambulance",
+    "Tractor",
+    "Submarine",
+  ],
+  clothes: [
+    "Hoodie",
+    "Jeans",
+    "Sneakers",
+    "T-shirt",
+    "Socks",
+    "Hat",
+    "Jacket",
+    "Scarf",
+    "Gloves",
+    "Dress",
+    "Skirt",
+    "Shorts",
+    "Sunglasses",
+    "Pyjamas",
+    "Boots",
+    "Raincoat",
+  ],
+  nature: [
+    "Forest",
+    "River",
+    "Volcano",
+    "Rain",
+    "Rainbow",
+    "Thunder",
+    "Lightning",
+    "Waterfall",
+    "Lake",
+    "Flower",
+    "Tree",
+    "Cloud",
+    "Snow",
+    "Sunset",
+    "Cave",
+    "Storm",
+  ],
+  technology: [
+    "Phone",
+    "Laptop",
+    "Wifi",
+    "Headphones",
+    "Tablet",
+    "Keyboard",
+    "Mouse",
+    "Camera",
+    "Robot",
+    "Drone",
+    "Charger",
+    "App",
+    "Password",
+    "Printer",
+    "Remote",
+    "Emoji",
+  ],
+  holidays: [
+    "Christmas",
+    "Birthday",
+    "Halloween",
+    "Easter",
+    "Camping",
+    "Wedding",
+    "New Year",
+    "Fireworks",
+    "Present",
+    "Sleepover",
+    "Costume",
+    "Santa",
+    "Parade",
+    "Picnic",
+    "Cruise",
+    "Balloon",
+  ],
+  videogames: [
+    "Minecraft",
+    "Fortnite",
+    "Roblox",
+    "Mario",
+    "Pokemon",
+    "Zelda",
+    "Sonic",
+    "Tetris",
+    "Pac-Man",
+    "Geometry Dash",
+    "Angry Birds",
+    "Among Us",
+    "FIFA",
+    "Subway Surfers",
+    "Brawl Stars",
+    "Rocket League",
+  ],
+  medieval: [
+    "Knight",
+    "King",
+    "Queen",
+    "Sword",
+    "Shield",
+    "Crown",
+    "Princess",
+    "Armour",
+    "Drawbridge",
+    "Dungeon",
+    "Throne",
+    "Catapult",
+    "Jester",
+    "Peasant",
+    "Blacksmith",
+    "Tournament",
+  ],
+};
+
 describe("word pack", () => {
-  it("has eight family-friendly categories of 16 words with 2 hints", () => {
-    expect(pack.categories).toHaveLength(8);
+  it("has sixteen family-friendly categories of 16 words with 2 hints", () => {
+    expect(pack.categories).toHaveLength(16);
     expect(pack.categories.map((c) => c.id)).toEqual([
       "food",
       "animals",
@@ -27,6 +322,32 @@ describe("word pack", () => {
       "movies",
       "household",
       "school",
+      "music",
+      "transport",
+      "clothes",
+      "nature",
+      "technology",
+      "holidays",
+      "videogames",
+      "medieval",
+    ]);
+    expect(pack.categories.map((c) => c.name)).toEqual([
+      "Food",
+      "Animals",
+      "Places",
+      "Jobs",
+      "Sports",
+      "Movies",
+      "Household",
+      "School",
+      "Music",
+      "Transport",
+      "Clothes",
+      "Nature",
+      "Technology",
+      "Holidays",
+      "Video games",
+      "Medieval",
     ]);
     for (const category of pack.categories) {
       expect(category.words).toHaveLength(16);
@@ -40,6 +361,30 @@ describe("word pack", () => {
         }
       }
     }
+  });
+
+  it("keeps the original eight secret-word lists unchanged", () => {
+    for (const [id, words] of Object.entries(ORIGINAL_EIGHT_WORDS)) {
+      expect(categoryById(id).words.map((entry) => entry.word)).toEqual(words);
+    }
+  });
+
+  it("uses the closed IW-7 secret-word lists for the new categories", () => {
+    for (const [id, words] of Object.entries(NEW_CATEGORY_WORDS)) {
+      expect(categoryById(id).words.map((entry) => entry.word)).toEqual(words);
+    }
+  });
+
+  it("keeps every secret unique across the whole pack", () => {
+    const seen = new Set<string>();
+    for (const category of pack.categories) {
+      for (const entry of category.words) {
+        const key = norm(entry.word);
+        expect(seen.has(key)).toBe(false);
+        seen.add(key);
+      }
+    }
+    expect(seen.size).toBe(256);
   });
 
   it("keeps hints mechanically distinct from each other and from secrets in the same category", () => {
@@ -121,5 +466,22 @@ describe("word pack", () => {
     for (const assignment of imposters) {
       expect(["Bat", "Catch"]).toContain(assignment.hint);
     }
+  });
+
+  it("deals a Video games secret when only that category is enabled", () => {
+    const words = categoryById("videogames").words.map((entry) => entry.word);
+    const setup: SetupState = {
+      ...defaultSetup(pack),
+      names: ["Ada", "Bob", "Cara"],
+      enabledCategoryIds: ["videogames"],
+      trollEnabled: false,
+    };
+    const { round } = dealRound({
+      setup,
+      pack,
+      deck: emptyDeck(),
+      random: () => 0,
+    });
+    expect(words).toContain(round.secretWord);
   });
 });

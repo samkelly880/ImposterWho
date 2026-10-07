@@ -65,6 +65,34 @@ describe("setup markup", () => {
     expect(html).not.toMatch(/id="last-word"[^>]*checked/);
     expect(html).toContain("Last Word");
   });
+
+  it("lists sixteen category checkboxes in pack order", () => {
+    const html = renderApp(game());
+    const ids = [...html.matchAll(/data-action="toggle-category" data-id="([^"]+)"/g)].map(
+      (match) => match[1],
+    );
+    expect(ids).toEqual([
+      "food",
+      "animals",
+      "places",
+      "jobs",
+      "sports",
+      "movies",
+      "household",
+      "school",
+      "music",
+      "transport",
+      "clothes",
+      "nature",
+      "technology",
+      "holidays",
+      "videogames",
+      "medieval",
+    ]);
+    expect(html).toContain(">Video games</span>");
+    expect(html).toContain(">Medieval</span>");
+    expect(html).not.toContain("Fantasy");
+  });
 });
 
 function startedGame(hintsEnabled = true): GameController {

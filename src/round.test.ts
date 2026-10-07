@@ -30,7 +30,7 @@ import {
   votePrompt,
   voteTargets,
 } from "./round.ts";
-import type { SetupState, TrollRuleId, TrollRules } from "./types.ts";
+import { TROLL_CHANCE, type SetupState, type TrollRuleId, type TrollRules } from "./types.ts";
 
 function rules(partial: Partial<TrollRules> = {}): TrollRules {
   return {
@@ -63,22 +63,22 @@ describe("troll roll", () => {
     expect(rollTroll(true, off, () => 0)).toBe(null);
   });
 
-  it("does not fire when the roll is 10% or higher", () => {
+  it("does not fire when the roll is 3.33% or higher", () => {
     const armed = rules({ allImposters: true, noImposters: true, reverse: true });
-    expect(rollTroll(true, armed, createQueueRandom([0.1]))).toBe(null);
+    expect(rollTroll(true, armed, createQueueRandom([TROLL_CHANCE]))).toBe(null);
   });
 
-  it("fires at 10% and picks one enabled rule uniformly", () => {
+  it("fires below 3.33% and picks one enabled rule uniformly", () => {
     const armed = rules({ allImposters: true, reverse: true });
-    expect(rollTroll(true, armed, createQueueRandom([0.099, 0]))).toBe("allImposters");
+    expect(rollTroll(true, armed, createQueueRandom([0.0332, 0]))).toBe("allImposters");
     expect(rollTroll(true, armed, createQueueRandom([0, 0.5]))).toBe("reverse");
   });
 
-  it("includes Double Agent in the armed list and 10% pick", () => {
+  it("includes Double Agent in the armed list and 3.33% pick", () => {
     const onlyDa = rules({ doubleAgent: true });
     expect(armedTrollRules(true, onlyDa)).toEqual(["doubleAgent"]);
     expect(rollTroll(true, onlyDa, createQueueRandom([0, 0]))).toBe("doubleAgent");
-    expect(rollTroll(true, onlyDa, createQueueRandom([0.1]))).toBe(null);
+    expect(rollTroll(true, onlyDa, createQueueRandom([TROLL_CHANCE]))).toBe(null);
     const mixed = rules({ allImposters: true, reverse: true, doubleAgent: true });
     expect(armedTrollRules(true, mixed)).toEqual([
       "allImposters",
@@ -116,10 +116,16 @@ describe("role assignment", () => {
     expect(roles).toEqual(["civilian", "civilian", "civilian", "civilian"]);
   });
 
-  it("Reverse leaves exactly one civilian", () => {
-    const roles = assignRoles(5, 1, "reverse", () => 0.5);
-    expect(roles.filter((r) => r === "civilian")).toHaveLength(1);
-    expect(roles.filter((r) => r === "imposter")).toHaveLength(4);
+  it("Reverse leaves as many civilians as a normal round would have imposters", () => {
+    const one = assignRoles(5, 1, "reverse", () => 0.5);
+    expect(one.filter((r) => r === "civilian")).toHaveLength(1);
+    expect(one.filter((r) => r === "imposter")).toHaveLength(4);
+    const two = assignRoles(8, 2, "reverse", () => 0.5);
+    expect(two.filter((r) => r === "civilian")).toHaveLength(2);
+    expect(two.filter((r) => r === "imposter")).toHaveLength(6);
+    const clamped = assignRoles(5, 99, "reverse", () => 0.5);
+    expect(clamped.filter((r) => r === "civilian")).toHaveLength(4);
+    expect(clamped.filter((r) => r === "imposter")).toHaveLength(1);
   });
 
   it("Double Agent uses the normal imposter count (conversion happens in dealRound)", () => {
@@ -185,9 +191,11 @@ describe("dealRound", () => {
   });
 
   it("Reverse imposters get in-category hints that may come from other words", () => {
-    const setup = namedSetup(["Ada", "Bob", "Cara"], {
+    const setup = namedSetup(["Ada", "Bob", "Cara", "Dee", "Eve", "Fay", "Gus", "Han"], {
       trollEnabled: true,
       trollRules: rules({ reverse: true }),
+      autoImposters: false,
+      imposterCount: 2,
     });
     const { round } = dealRound({
       setup,
@@ -196,7 +204,8 @@ describe("dealRound", () => {
       random: () => 0,
     });
     expect(round.trollRule).toBe("reverse");
-    expect(round.assignments.filter((a) => a.role === "civilian")).toHaveLength(1);
+    expect(round.assignments.filter((a) => a.role === "civilian")).toHaveLength(2);
+    expect(round.assignments.filter((a) => a.role === "imposter")).toHaveLength(6);
     expect(round.secretWord).toBeTruthy();
     const food = categoryById("food", pack);
     const secretHints = new Set(wordEntry(food, round.secretWord!).hints);

@@ -175,6 +175,182 @@
         { "word": "Desk", "hints": ["Drawer", "Seat"] },
         { "word": "Bell", "hints": ["Ring", "Breaktime"] }
       ]
+    },
+    {
+      "id": "music",
+      "name": "Music",
+      "words": [
+        { "word": "Guitar", "hints": ["Strings", "Amp"] },
+        { "word": "Piano", "hints": ["Keys", "Pedal"] },
+        { "word": "Drum", "hints": ["Beat", "Sticks"] },
+        { "word": "Violin", "hints": ["Bow", "Orchestra"] },
+        { "word": "Microphone", "hints": ["Voice", "Stand"] },
+        { "word": "Concert", "hints": ["Tickets", "Crowd"] },
+        { "word": "Karaoke", "hints": ["Lyrics", "Sing"] },
+        { "word": "Choir", "hints": ["Harmony", "Hymn"] },
+        { "word": "Ukulele", "hints": ["Hawaii", "Small"] },
+        { "word": "Trumpet", "hints": ["Brass", "Fanfare"] },
+        { "word": "Flute", "hints": ["Breath", "Holes"] },
+        { "word": "Rap", "hints": ["Rhyme", "Verse"] },
+        { "word": "Playlist", "hints": ["Shuffle", "Queue"] },
+        { "word": "Band", "hints": ["Album", "Tour"] },
+        { "word": "Recorder", "hints": ["Plastic", "Classroom"] },
+        { "word": "DJ", "hints": ["Mix", "Club"] }
+      ]
+    },
+    {
+      "id": "transport",
+      "name": "Transport",
+      "words": [
+        { "word": "Car", "hints": ["Steering", "Road"] },
+        { "word": "Bus", "hints": ["Route", "Passengers"] },
+        { "word": "Train", "hints": ["Tracks", "Station"] },
+        { "word": "Plane", "hints": ["Wings", "Cabin"] },
+        { "word": "Bike", "hints": ["Pedal", "Chain"] },
+        { "word": "Ferry", "hints": ["Wharf", "Crossing"] },
+        { "word": "Boat", "hints": ["Sail", "Anchor"] },
+        { "word": "Helicopter", "hints": ["Rotor", "Hover"] },
+        { "word": "Scooter", "hints": ["Kick", "Handlebars"] },
+        { "word": "Truck", "hints": ["Trailer", "Cargo"] },
+        { "word": "Taxi", "hints": ["Meter", "Fare"] },
+        { "word": "Motorbike", "hints": ["Helmet", "Exhaust"] },
+        { "word": "Skateboard", "hints": ["Tricks", "Ramp"] },
+        { "word": "Ambulance", "hints": ["Siren", "Emergency"] },
+        { "word": "Tractor", "hints": ["Field", "Crops"] },
+        { "word": "Submarine", "hints": ["Periscope", "Dive"] }
+      ]
+    },
+    {
+      "id": "clothes",
+      "name": "Clothes",
+      "words": [
+        { "word": "Hoodie", "hints": ["Pocket", "Fleece"] },
+        { "word": "Jeans", "hints": ["Denim", "Blue"] },
+        { "word": "Sneakers", "hints": ["Laces", "Sport"] },
+        { "word": "T-shirt", "hints": ["Cotton", "Logo"] },
+        { "word": "Socks", "hints": ["Pair", "Feet"] },
+        { "word": "Hat", "hints": ["Brim", "Head"] },
+        { "word": "Jacket", "hints": ["Zip", "Collar"] },
+        { "word": "Scarf", "hints": ["Wool", "Wrap"] },
+        { "word": "Gloves", "hints": ["Fingers", "Palms"] },
+        { "word": "Dress", "hints": ["Formal", "Gown"] },
+        { "word": "Skirt", "hints": ["Pleats", "Twirl"] },
+        { "word": "Shorts", "hints": ["Summer", "Knees"] },
+        { "word": "Sunglasses", "hints": ["Shade", "Tint"] },
+        { "word": "Pyjamas", "hints": ["Bedtime", "Sleep"] },
+        { "word": "Boots", "hints": ["Mud", "Heel"] },
+        { "word": "Raincoat", "hints": ["Waterproof", "Puddle"] }
+      ]
+    },
+    {
+      "id": "nature",
+      "name": "Nature",
+      "words": [
+        { "word": "Forest", "hints": ["Woods", "Canopy"] },
+        { "word": "River", "hints": ["Current", "Banks"] },
+        { "word": "Volcano", "hints": ["Lava", "Erupt"] },
+        { "word": "Rain", "hints": ["Wet", "Umbrella"] },
+        { "word": "Rainbow", "hints": ["Colours", "Arc"] },
+        { "word": "Thunder", "hints": ["Boom", "Rumble"] },
+        { "word": "Lightning", "hints": ["Flash", "Strike"] },
+        { "word": "Waterfall", "hints": ["Cascade", "Mist"] },
+        { "word": "Lake", "hints": ["Shore", "Still"] },
+        { "word": "Flower", "hints": ["Petals", "Bloom"] },
+        { "word": "Tree", "hints": ["Leaves", "Roots"] },
+        { "word": "Cloud", "hints": ["Fluffy", "Sky"] },
+        { "word": "Snow", "hints": ["Flakes", "Cold"] },
+        { "word": "Sunset", "hints": ["Horizon", "Dusk"] },
+        { "word": "Cave", "hints": ["Dark", "Echo"] },
+        { "word": "Storm", "hints": ["Wind", "Wild"] }
+      ]
+    },
+    {
+      "id": "technology",
+      "name": "Technology",
+      "words": [
+        { "word": "Phone", "hints": ["Call", "Screen"] },
+        { "word": "Laptop", "hints": ["Portable", "Battery"] },
+        { "word": "Wifi", "hints": ["Signal", "Router"] },
+        { "word": "Headphones", "hints": ["Audio", "Ears"] },
+        { "word": "Tablet", "hints": ["Touch", "Glass"] },
+        { "word": "Keyboard", "hints": ["Type", "Keys"] },
+        { "word": "Mouse", "hints": ["Click", "Cursor"] },
+        { "word": "Camera", "hints": ["Photo", "Lens"] },
+        { "word": "Robot", "hints": ["Metal", "Beep"] },
+        { "word": "Drone", "hints": ["Aerial", "Hover"] },
+        { "word": "Charger", "hints": ["Plug", "Cable"] },
+        { "word": "App", "hints": ["Icon", "Download"] },
+        { "word": "Password", "hints": ["Secret", "Login"] },
+        { "word": "Printer", "hints": ["Paper", "Ink"] },
+        { "word": "Remote", "hints": ["Buttons", "Channel"] },
+        { "word": "Emoji", "hints": ["Smile", "Chat"] }
+      ]
+    },
+    {
+      "id": "holidays",
+      "name": "Holidays",
+      "words": [
+        { "word": "Christmas", "hints": ["Decorations", "Carols"] },
+        { "word": "Birthday", "hints": ["Cake", "Candles"] },
+        { "word": "Halloween", "hints": ["Spooky", "Pumpkin"] },
+        { "word": "Easter", "hints": ["Eggs", "Bunny"] },
+        { "word": "Camping", "hints": ["Tent", "Campfire"] },
+        { "word": "Wedding", "hints": ["Rings", "Bride"] },
+        { "word": "New Year", "hints": ["Midnight", "Countdown"] },
+        { "word": "Fireworks", "hints": ["Sparks", "Sky"] },
+        { "word": "Present", "hints": ["Wrap", "Gift"] },
+        { "word": "Sleepover", "hints": ["Friends", "Pillow"] },
+        { "word": "Costume", "hints": ["Dress-up", "Mask"] },
+        { "word": "Santa", "hints": ["Sleigh", "Chimney"] },
+        { "word": "Parade", "hints": ["Float", "March"] },
+        { "word": "Picnic", "hints": ["Blanket", "Basket"] },
+        { "word": "Cruise", "hints": ["Ship", "Ocean"] },
+        { "word": "Balloon", "hints": ["Helium", "Pop"] }
+      ]
+    },
+    {
+      "id": "videogames",
+      "name": "Video games",
+      "words": [
+        { "word": "Minecraft", "hints": ["Blocks", "Craft"] },
+        { "word": "Fortnite", "hints": ["Battle", "Storm"] },
+        { "word": "Roblox", "hints": ["Avatar", "Build"] },
+        { "word": "Mario", "hints": ["Pipes", "Mushroom"] },
+        { "word": "Pokemon", "hints": ["Trainer", "Gym"] },
+        { "word": "Zelda", "hints": ["Puzzle", "Dungeon"] },
+        { "word": "Sonic", "hints": ["Speed", "Rings"] },
+        { "word": "Tetris", "hints": ["Stack", "Rows"] },
+        { "word": "Pac-Man", "hints": ["Maze", "Dots"] },
+        { "word": "Geometry Dash", "hints": ["Jump", "Rhythm"] },
+        { "word": "Angry Birds", "hints": ["Slingshot", "Pigs"] },
+        { "word": "Among Us", "hints": ["Crew", "Vent"] },
+        { "word": "FIFA", "hints": ["Pitch", "Goal"] },
+        { "word": "Subway Surfers", "hints": ["Run", "Coins"] },
+        { "word": "Brawl Stars", "hints": ["Gems", "Trophy"] },
+        { "word": "Rocket League", "hints": ["Boost", "Arena"] }
+      ]
+    },
+    {
+      "id": "medieval",
+      "name": "Medieval",
+      "words": [
+        { "word": "Knight", "hints": ["Lance", "Honour"] },
+        { "word": "King", "hints": ["Royal", "Command"] },
+        { "word": "Queen", "hints": ["Court", "Royal"] },
+        { "word": "Sword", "hints": ["Blade", "Steel"] },
+        { "word": "Shield", "hints": ["Block", "Defend"] },
+        { "word": "Crown", "hints": ["Jewels", "Gold"] },
+        { "word": "Princess", "hints": ["Tower", "Gown"] },
+        { "word": "Armour", "hints": ["Metal", "Suit"] },
+        { "word": "Drawbridge", "hints": ["Moat", "Gate"] },
+        { "word": "Dungeon", "hints": ["Prison", "Dark"] },
+        { "word": "Throne", "hints": ["Seat", "Hall"] },
+        { "word": "Catapult", "hints": ["Stones", "Siege"] },
+        { "word": "Jester", "hints": ["Joke", "Bells"] },
+        { "word": "Peasant", "hints": ["Village", "Farm"] },
+        { "word": "Blacksmith", "hints": ["Hammer", "Forge"] },
+        { "word": "Tournament", "hints": ["Joust", "Contest"] }
+      ]
     }
   ]
 }
