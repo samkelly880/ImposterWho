@@ -1,6 +1,7 @@
 import { GameController } from "../controller.ts";
 import type { TrollRuleId } from "../types.ts";
 import { TROLL_RULES } from "../types.ts";
+import { fitLineElements } from "./fit-line.ts";
 import { renderApp } from "./view.ts";
 
 function isTrollRule(value: string): value is TrollRuleId {
@@ -116,12 +117,24 @@ export function paint(
   root.innerHTML = renderApp(game);
   applyFocusSnapshot(host, snapshot);
   focusQuitDialog(host, snapshot);
+  fitLineElements(root);
 }
 
 export function mount(root: HTMLElement, game: GameController): void {
   const redraw = (): void => {
     paint(root, game, document.activeElement);
   };
+  const refit = (): void => {
+    fitLineElements(root);
+  };
+
+  if (typeof ResizeObserver === "function") {
+    new ResizeObserver(refit).observe(root);
+  }
+  if (typeof document !== "undefined" && document.fonts) {
+    void document.fonts.ready.then(refit);
+    document.fonts.addEventListener("loadingdone", refit);
+  }
 
   root.addEventListener("input", (event) => {
     const target = event.target;

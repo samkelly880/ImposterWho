@@ -373,12 +373,17 @@ input[type="checkbox"] {
   visibility: hidden;
 }
 
+.fit-line {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 .card-name {
   font-family: Fraunces, Georgia, serif;
   font-size: clamp(2.2rem, 10vw, 3.4rem);
   line-height: 0.95;
   margin: 0 0 16px;
-  word-break: break-word;
 }
 
 .card-prompt,
@@ -393,7 +398,6 @@ input[type="checkbox"] {
   font-size: clamp(2rem, 9vw, 3rem);
   line-height: 1;
   margin: 12px 0 0;
-  word-break: break-word;
 }
 
 .card-role {
@@ -418,7 +422,6 @@ input[type="checkbox"] {
   font-weight: 800;
   line-height: 1;
   margin: 12px 0 0;
-  word-break: break-word;
 }
 
 .card-face.front.is-imposter {
@@ -439,7 +442,6 @@ input[type="checkbox"] {
   font-size: clamp(2.6rem, 12vw, 4rem);
   line-height: 0.95;
   margin: 0;
-  word-break: break-word;
 }
 
 .start-line {
