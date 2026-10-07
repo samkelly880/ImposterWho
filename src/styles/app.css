@@ -374,16 +374,19 @@ input[type="checkbox"] {
 }
 
 .fit-line {
+  /* Clip horizontally; bleed the clip box so Fraunces descenders still paint. */
+  --fit-line-bleed: 0.25em;
   width: 100%;
   white-space: nowrap;
   overflow: hidden;
+  padding-block: var(--fit-line-bleed);
 }
 
 .card-name {
   font-family: Fraunces, Georgia, serif;
   font-size: clamp(2.2rem, 10vw, 3.4rem);
   line-height: 0.95;
-  margin: 0 0 16px;
+  margin: calc(0px - var(--fit-line-bleed, 0px)) 0 calc(16px - var(--fit-line-bleed, 0px));
 }
 
 .card-prompt,
@@ -397,7 +400,7 @@ input[type="checkbox"] {
   font-family: Fraunces, Georgia, serif;
   font-size: clamp(2rem, 9vw, 3rem);
   line-height: 1;
-  margin: 12px 0 0;
+  margin: calc(12px - var(--fit-line-bleed, 0px)) 0 calc(0px - var(--fit-line-bleed, 0px));
 }
 
 .card-role {
@@ -421,7 +424,7 @@ input[type="checkbox"] {
   font-size: clamp(1.25rem, 5vw, 1.8rem);
   font-weight: 800;
   line-height: 1;
-  margin: 12px 0 0;
+  margin: calc(12px - var(--fit-line-bleed, 0px)) 0 calc(0px - var(--fit-line-bleed, 0px));
 }
 
 .card-face.front.is-imposter {
@@ -441,7 +444,7 @@ input[type="checkbox"] {
   font-family: Fraunces, Georgia, serif;
   font-size: clamp(2.6rem, 12vw, 4rem);
   line-height: 0.95;
-  margin: 0;
+  margin: calc(0px - var(--fit-line-bleed, 0px)) 0;
 }
 
 .start-line {
@@ -458,7 +461,7 @@ input[type="checkbox"] {
 .recap-word {
   font-family: Fraunces, Georgia, serif;
   font-size: 2rem;
-  margin: 0 0 8px;
+  margin: calc(0px - var(--fit-line-bleed, 0px)) 0 calc(8px - var(--fit-line-bleed, 0px));
 }
 
 .recap-list {

@@ -287,6 +287,17 @@ describe("fit-line markup and CSS", () => {
     expect(appCss).not.toMatch(/\.start-name\s*\{[^}]*word-break/);
     expect(appCss).toMatch(/\.card-role\s*\{[^}]*word-break:\s*break-word/);
   });
+
+  it("expands the fit-line clip box so Fraunces descenders are not sliced", () => {
+    expect(appCss).toMatch(/--fit-line-bleed:\s*0\.25em/);
+    expect(appCss).toMatch(/\.fit-line\s*\{[^}]*overflow:\s*hidden/);
+    expect(appCss).toMatch(/\.fit-line\s*\{[^}]*padding-block:\s*var\(--fit-line-bleed\)/);
+    expect(appCss).toMatch(/\.card-name\s*\{[^}]*var\(--fit-line-bleed/);
+    expect(appCss).toMatch(/\.card-word\s*\{[^}]*var\(--fit-line-bleed/);
+    expect(appCss).toMatch(/\.card-hint-word\s*\{[^}]*var\(--fit-line-bleed/);
+    expect(appCss).toMatch(/\.start-name\s*\{[^}]*var\(--fit-line-bleed/);
+    expect(appCss).toMatch(/\.recap-word\s*\{[^}]*var\(--fit-line-bleed/);
+  });
 });
 
 describe("end-round dialog markup", () => {
