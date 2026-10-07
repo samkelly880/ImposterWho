@@ -168,6 +168,8 @@ describe("flip markup", () => {
   it("hides the secret face in CSS until the card is flipped", () => {
     expect(appCss).toMatch(/\.card:not\(\.is-flipped\)\s+\.card-face\.front\s*\{[^}]*visibility:\s*hidden/);
     expect(appCss).toMatch(/\.card-face\.front\s*\{[^}]*translateZ/);
+    expect(appCss).toMatch(/\.card-face\.front\s*\{[^}]*transition:\s*visibility/);
+    expect(appCss).toMatch(/\.card\.is-flipped\s+\.card-face\.front\s*\{[^}]*visibility:\s*visible/);
     expect(appCss).toMatch(/\.screen\.flip\s+\.card\s*\{[^}]*touch-action:\s*none/);
   });
 

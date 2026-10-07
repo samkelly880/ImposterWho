@@ -337,6 +337,7 @@ input[type="checkbox"] {
   padding: 0;
   background: transparent;
   border-radius: 28px;
+  --card-flip-ms: 400ms;
 }
 
 .screen.flip .card {
@@ -352,7 +353,7 @@ input[type="checkbox"] {
   width: 100%;
   min-height: 420px;
   transform-style: preserve-3d;
-  transition: transform 400ms ease;
+  transition: transform var(--card-flip-ms) ease;
 }
 
 .card.is-flipped .card-inner {
@@ -378,6 +379,13 @@ input[type="checkbox"] {
 
 .card-face.front {
   transform: rotateY(180deg) translateZ(1px);
+  /* Delay hiding until the inner rotateY finishes, or both faces vanish mid-unflip. */
+  transition: visibility 0s linear var(--card-flip-ms);
+}
+
+.card.is-flipped .card-face.front {
+  visibility: visible;
+  transition-delay: 0s;
 }
 
 .card:not(.is-flipped) .card-face.front {
