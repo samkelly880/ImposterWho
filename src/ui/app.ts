@@ -85,11 +85,25 @@ export function trapDialogTab(
   }
 }
 
+function isDialogButton(id: string | undefined): boolean {
+  return id === "keep-playing" || id === "end-round";
+}
+
 function focusQuitDialog(root: RenderRoot, snapshot: FocusSnapshot | null): void {
-  if (snapshot?.id === "keep-playing" || snapshot?.id === "end-round") return;
   const keep = root.querySelector('[data-action="cancel-quit"]');
-  if (!isRestored(keep)) return;
-  keep.focus({ preventScroll: true });
+  if (isRestored(keep)) {
+    if (isDialogButton(snapshot?.id)) return;
+    keep.focus({ preventScroll: true });
+    return;
+  }
+  if (!isDialogButton(snapshot?.id)) return;
+  const quit = root.querySelector('[data-action="quit"]');
+  if (isRestored(quit)) {
+    quit.focus({ preventScroll: true });
+    return;
+  }
+  const firstName = root.querySelector("#name-0");
+  if (isRestored(firstName)) firstName.focus({ preventScroll: true });
 }
 
 export function paint(

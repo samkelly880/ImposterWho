@@ -142,4 +142,79 @@ describe("end-round dialog focus", () => {
     expect(prevented).toBe(true);
     expect(end.focused).toBe(true);
   });
+
+  it("moves focus to the Quit button when Keep playing closes the dialog", () => {
+    const quit = {
+      focused: false,
+      preventScroll: false,
+      focus(options?: { preventScroll?: boolean }) {
+        this.focused = true;
+        this.preventScroll = Boolean(options?.preventScroll);
+      },
+    };
+    const live = { id: "keep-playing" };
+    const root = {
+      html: "",
+      replaced: false,
+      contains(node: object) {
+        if (this.replaced) return false;
+        return node === live;
+      },
+      querySelector(selector: string) {
+        return selector === '[data-action="quit"]' ? quit : null;
+      },
+      set innerHTML(value: string) {
+        this.html = value;
+        this.replaced = true;
+      },
+      get innerHTML() {
+        return this.html;
+      },
+    };
+    const g = startedGame();
+    g.requestQuit();
+    g.cancelQuit();
+    paint(root, g, live);
+    expect(root.html).toContain('data-action="quit"');
+    expect(root.html).not.toContain("Keep playing");
+    expect(quit.focused).toBe(true);
+    expect(quit.preventScroll).toBe(true);
+  });
+
+  it("moves focus to the first name field when End round returns to setup", () => {
+    const name = {
+      focused: false,
+      preventScroll: false,
+      focus(options?: { preventScroll?: boolean }) {
+        this.focused = true;
+        this.preventScroll = Boolean(options?.preventScroll);
+      },
+    };
+    const live = { id: "end-round" };
+    const root = {
+      html: "",
+      replaced: false,
+      contains(node: object) {
+        if (this.replaced) return false;
+        return node === live;
+      },
+      querySelector(selector: string) {
+        return selector === "#name-0" ? name : null;
+      },
+      set innerHTML(value: string) {
+        this.html = value;
+        this.replaced = true;
+      },
+      get innerHTML() {
+        return this.html;
+      },
+    };
+    const g = startedGame();
+    g.requestQuit();
+    g.confirmQuit();
+    paint(root, g, live);
+    expect(root.html).toContain('id="name-0"');
+    expect(name.focused).toBe(true);
+    expect(name.preventScroll).toBe(true);
+  });
 });
