@@ -59,6 +59,39 @@ export function applyFocusSnapshot(root: RenderRoot, snapshot: FocusSnapshot | n
   }
 }
 
+export type TabLike = {
+  key: string;
+  shiftKey: boolean;
+  preventDefault(): void;
+};
+
+export function trapDialogTab(
+  event: TabLike,
+  buttons: RestoredLike[],
+  active: object | null,
+): void {
+  if (event.key !== "Tab" || buttons.length === 0) return;
+  const first = buttons[0]!;
+  const last = buttons[buttons.length - 1]!;
+  const inside = buttons.includes(active as RestoredLike);
+  if (event.shiftKey && (active === first || !inside)) {
+    event.preventDefault();
+    last.focus({ preventScroll: true });
+    return;
+  }
+  if (!event.shiftKey && (active === last || !inside)) {
+    event.preventDefault();
+    first.focus({ preventScroll: true });
+  }
+}
+
+function focusQuitDialog(root: RenderRoot, snapshot: FocusSnapshot | null): void {
+  if (snapshot?.id === "keep-playing" || snapshot?.id === "end-round") return;
+  const keep = root.querySelector('[data-action="cancel-quit"]');
+  if (!isRestored(keep)) return;
+  keep.focus({ preventScroll: true });
+}
+
 export function paint(
   root: HTMLElement | RenderRoot,
   game: GameController,
@@ -68,6 +101,7 @@ export function paint(
   const snapshot = snapshotFocus(host, active);
   root.innerHTML = renderApp(game);
   applyFocusSnapshot(host, snapshot);
+  focusQuitDialog(host, snapshot);
 }
 
 export function mount(root: HTMLElement, game: GameController): void {
@@ -99,6 +133,14 @@ export function mount(root: HTMLElement, game: GameController): void {
       game.setTrollRule(target.dataset.id, target.checked);
     }
     redraw();
+  });
+
+  root.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab") return;
+    const dialog = root.querySelector('[role="dialog"]');
+    if (!(dialog instanceof HTMLElement)) return;
+    const buttons = [...dialog.querySelectorAll("button")];
+    trapDialogTab(event, buttons, document.activeElement);
   });
 
   root.addEventListener("click", (event) => {

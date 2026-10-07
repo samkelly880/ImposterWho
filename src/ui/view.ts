@@ -24,8 +24,8 @@ function confirmModal(): string {
         <h2 id="quit-title">End this round?</h2>
         <p>Names and settings stay. Roles for this round are discarded.</p>
         <div class="dialog-actions">
-          <button class="secondary-btn" type="button" data-action="cancel-quit">Keep playing</button>
-          <button class="primary-btn" type="button" data-action="confirm-quit">End round</button>
+          <button id="keep-playing" class="secondary-btn" type="button" data-action="cancel-quit">Keep playing</button>
+          <button id="end-round" class="primary-btn" type="button" data-action="confirm-quit">End round</button>
         </div>
       </div>
     </div>
@@ -198,14 +198,14 @@ function flipView(state: AppState): string {
     ? "Pass the device to the next player."
     : "Flip your card, then hide it to continue.";
   return `
-    <section class="screen flip">
+    <section class="screen flip"${state.confirmQuit ? " inert" : ""}>
       ${quitButton()}
       <div class="card-scene">
         <button
           class="card ${state.flip.faceDown ? "" : "is-flipped"}"
           type="button"
           data-action="flip"
-          aria-label="${state.flip.faceDown ? "Tap to flip" : "Hide card"}"
+          ${state.flip.faceDown ? 'aria-label="Tap to flip"' : ""}
         >
           <div class="card-inner">
             <div class="card-face back skin skin-${skin.color} pattern-${skin.pattern} skin-ink-${skin.ink}" ${state.flip.faceDown ? "" : "aria-hidden=\"true\""}>
@@ -230,7 +230,7 @@ function startView(state: AppState): string {
   const starter = round.assignments[round.starterIndex];
   if (!starter) return "";
   return `
-    <section class="screen start">
+    <section class="screen start"${state.confirmQuit ? " inert" : ""}>
       ${quitButton()}
       <div class="start-block">
         <p class="start-name">${escapeHtml(starter.name)}</p>
@@ -264,7 +264,7 @@ function recapView(state: AppState): string {
     )
     .join("");
   return `
-    <section class="screen recap">
+    <section class="screen recap"${state.confirmQuit ? " inert" : ""}>
       ${quitButton()}
       <div class="recap-block">
         ${wordBlock}

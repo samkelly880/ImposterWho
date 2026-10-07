@@ -80,6 +80,29 @@ describe("flip markup", () => {
     expect(appCss).toMatch(/\.card-face\.front\s*\{[^}]*translateZ/);
   });
 
+  it("lets the revealed word name the face-up card", () => {
+    const g = game();
+    g.setName(0, "Ada");
+    g.setName(1, "Bob");
+    g.setName(2, "Cara");
+    g.startRound();
+    expect(renderApp(g)).toContain('aria-label="Tap to flip"');
+    g.tapCard();
+    const html = renderApp(g);
+    const flipOpen = html.match(/data-action="flip"[^>]*>/);
+    expect(flipOpen).not.toBeNull();
+    expect(flipOpen![0]).not.toContain("aria-label");
+    expect(html).not.toContain('aria-label="Hide card"');
+    const role = g.state.round!.assignments[0]!.role;
+    if (role === "imposter") {
+      expect(html).toContain("You are the imposter.");
+      expect(html).toMatch(/class="card-face front[^"]*"(?![^>]*aria-hidden)/);
+    } else {
+      expect(html).toContain("The word is");
+      expect(html).toMatch(/class="card-face front[^"]*"(?![^>]*aria-hidden)/);
+    }
+  });
+
   it("enables Next after flip and hide", () => {
     const g = game();
     g.setName(0, "Ada");
@@ -116,5 +139,24 @@ describe("start and recap markup", () => {
     expect(recap).not.toContain("Hint:");
     expect(recap).not.toContain("Food");
     expect(recap).toMatch(/Imposter|Civilian/);
+  });
+});
+
+describe("end-round dialog markup", () => {
+  it("marks the board inert and lists Keep playing first", () => {
+    const g = game();
+    g.setName(0, "Ada");
+    g.setName(1, "Bob");
+    g.setName(2, "Cara");
+    g.startRound();
+    g.requestQuit();
+    const html = renderApp(g);
+    expect(html).toMatch(/<section class="screen flip"[^>]*\binert\b/);
+    expect(html).toContain('role="dialog"');
+    expect(html).toContain('aria-modal="true"');
+    const keepIndex = html.indexOf('data-action="cancel-quit"');
+    const endIndex = html.indexOf('data-action="confirm-quit"');
+    expect(keepIndex).toBeGreaterThan(0);
+    expect(endIndex).toBeGreaterThan(keepIndex);
   });
 });

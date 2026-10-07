@@ -1,7 +1,7 @@
 import { describe, expect, it } from "../testkit.ts";
 import { GameController } from "../controller.ts";
 import { memoryStorage } from "../storage.ts";
-import { paint } from "./app.ts";
+import { paint, trapDialogTab } from "./app.ts";
 
 function game(): GameController {
   return new GameController({ storage: memoryStorage(), random: () => 0 });
@@ -52,5 +52,94 @@ describe("setup paint focus", () => {
     expect(restored.preventScroll).toBe(true);
     expect(restored.selectionStart).toBe(2);
     expect(restored.selectionEnd).toBe(2);
+  });
+});
+
+function startedGame(): GameController {
+  const g = game();
+  g.setName(0, "Ada");
+  g.setName(1, "Bob");
+  g.setName(2, "Cara");
+  g.startRound();
+  return g;
+}
+
+describe("end-round dialog focus", () => {
+  it("moves focus to Keep playing when the dialog opens", () => {
+    const keep = {
+      focused: false,
+      preventScroll: false,
+      focus(options?: { preventScroll?: boolean }) {
+        this.focused = true;
+        this.preventScroll = Boolean(options?.preventScroll);
+      },
+    };
+    const root = {
+      html: "",
+      contains() {
+        return false;
+      },
+      querySelector(selector: string) {
+        return selector === '[data-action="cancel-quit"]' ? keep : null;
+      },
+      set innerHTML(value: string) {
+        this.html = value;
+      },
+      get innerHTML() {
+        return this.html;
+      },
+    };
+    const g = startedGame();
+    g.requestQuit();
+    paint(root, g, null);
+    expect(root.html).toContain("Keep playing");
+    expect(keep.focused).toBe(true);
+    expect(keep.preventScroll).toBe(true);
+  });
+
+  it("wraps Tab inside the dialog buttons", () => {
+    const keep = {
+      focused: false,
+      focus() {
+        this.focused = true;
+      },
+    };
+    const end = {
+      focused: false,
+      focus() {
+        this.focused = true;
+      },
+    };
+    let prevented = false;
+    trapDialogTab(
+      {
+        key: "Tab",
+        shiftKey: false,
+        preventDefault() {
+          prevented = true;
+        },
+      },
+      [keep, end],
+      end,
+    );
+    expect(prevented).toBe(true);
+    expect(keep.focused).toBe(true);
+    expect(end.focused).toBe(false);
+
+    keep.focused = false;
+    prevented = false;
+    trapDialogTab(
+      {
+        key: "Tab",
+        shiftKey: true,
+        preventDefault() {
+          prevented = true;
+        },
+      },
+      [keep, end],
+      keep,
+    );
+    expect(prevented).toBe(true);
+    expect(end.focused).toBe(true);
   });
 });
