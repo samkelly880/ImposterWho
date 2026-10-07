@@ -388,8 +388,7 @@ input[type="checkbox"] {
   font-weight: 700;
 }
 
-.card-word,
-.card-hint-word {
+.card-word {
   font-family: Fraunces, Georgia, serif;
   font-size: clamp(2rem, 9vw, 3rem);
   line-height: 1;
@@ -398,9 +397,35 @@ input[type="checkbox"] {
 }
 
 .card-role {
-  font-size: 1.35rem;
+  font-family: Fraunces, Georgia, serif;
+  font-size: clamp(2rem, 9vw, 3rem);
   font-weight: 800;
+  line-height: 0.95;
   margin: 0;
+  text-align: center;
+  word-break: break-word;
+}
+
+.card-hint-label {
+  font-size: 1rem;
+  font-weight: 400;
+  margin: 16px 0 0;
+}
+
+.card-hint-word {
+  font-family: Fraunces, Georgia, serif;
+  font-size: clamp(1.25rem, 5vw, 1.8rem);
+  font-weight: 800;
+  line-height: 1;
+  margin: 12px 0 0;
+  word-break: break-word;
+}
+
+.card-face.front.is-imposter {
+  --fill: #d1263d;
+  --ink: #fff;
+  color: #fff;
+  background: #d1263d;
 }
 
 .start-block,

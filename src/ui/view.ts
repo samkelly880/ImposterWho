@@ -179,7 +179,7 @@ function assignmentCopy(
   }
   const hint =
     hintsEnabled && assignment.hint
-      ? `<p class="card-kicker">Hint:</p><p class="card-hint-word">${escapeHtml(assignment.hint)}</p>`
+      ? `<p class="card-hint-label">Hint:</p><p class="card-hint-word">${escapeHtml(assignment.hint)}</p>`
       : "";
   return `
     <p class="card-role">You are the imposter.</p>
@@ -193,6 +193,7 @@ function flipView(state: AppState): string {
   const assignment = round.assignments[state.flip.playerIndex];
   if (!assignment) return "";
   const skin = skinForSlot(state.flip.playerIndex);
+  const frontRole = assignment.role === "imposter" ? " is-imposter" : "";
   const nextOn = canPressNext(state.flip.hasFlipped, state.flip.faceDown);
   const helper = nextOn
     ? "Pass the device to the next player."
@@ -212,7 +213,7 @@ function flipView(state: AppState): string {
               <p class="card-name">${escapeHtml(assignment.name)}</p>
               <p class="card-prompt">Tap to flip.</p>
             </div>
-            <div class="card-face front skin skin-${skin.color} pattern-${skin.pattern} skin-ink-${skin.ink}" ${state.flip.faceDown ? "aria-hidden=\"true\"" : ""}>
+            <div class="card-face front${frontRole} skin skin-${skin.color} pattern-${skin.pattern} skin-ink-${skin.ink}" ${state.flip.faceDown ? "aria-hidden=\"true\"" : ""}>
               ${assignmentCopy(assignment, round.secretWord, state.setup.hintsEnabled)}
             </div>
           </div>

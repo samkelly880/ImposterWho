@@ -55,6 +55,35 @@ describe("setup markup", () => {
   });
 });
 
+function startedGame(hintsEnabled = true): GameController {
+  const g = game();
+  g.setName(0, "Ada");
+  g.setName(1, "Bob");
+  g.setName(2, "Cara");
+  g.setHints(hintsEnabled);
+  g.startRound();
+  return g;
+}
+
+function advanceToPlayer(g: GameController, index: number): void {
+  while (g.state.flip.playerIndex < index) {
+    g.tapCard();
+    g.tapCard();
+    g.nextPlayer();
+  }
+}
+
+function renderCurrentPlayer(g: GameController, index: number): string {
+  advanceToPlayer(g, index);
+  return renderApp(g);
+}
+
+function playerIndexWithRole(g: GameController, role: "imposter" | "civilian"): number {
+  const index = g.state.round!.assignments.findIndex((assignment) => assignment.role === role);
+  expect(index).toBeGreaterThan(-1);
+  return index;
+}
+
 describe("flip markup", () => {
   it("shows the player name, tap prompt, and a disabled Next", () => {
     const g = game();
@@ -139,6 +168,60 @@ describe("start and recap markup", () => {
     expect(recap).not.toContain("Hint:");
     expect(recap).not.toContain("Food");
     expect(recap).toMatch(/Imposter|Civilian/);
+  });
+});
+
+describe("imposter flip-card type", () => {
+  it("marks only the revealed front as is-imposter and keeps role, Hint:, then hint word", () => {
+    const g = startedGame();
+    const index = playerIndexWithRole(g, "imposter");
+    const html = renderCurrentPlayer(g, index);
+    const hint = g.state.round!.assignments[index]!.hint;
+    expect(hint).not.toBeNull();
+    expect(html).toMatch(/class="card-face front is-imposter\b/);
+    expect(html).not.toMatch(/class="card-face back[^"]*is-imposter/);
+    expect(html).toMatch(
+      /class="card-role">You are the imposter\.<\/p>\s*<p class="card-hint-label">Hint:<\/p>\s*<p class="card-hint-word">/,
+    );
+    expect(html).toContain(`class="card-hint-word">${hint}</p>`);
+    expect(html).not.toMatch(/class="card-kicker">Hint:/);
+  });
+
+  it("leaves civilian fronts on the kicker and word hierarchy without is-imposter", () => {
+    const g = startedGame();
+    const index = playerIndexWithRole(g, "civilian");
+    const html = renderCurrentPlayer(g, index);
+    expect(html).not.toMatch(/class="card-face front[^"]*is-imposter/);
+    expect(html).toContain('class="card-kicker">The word is</p>');
+    expect(html).toMatch(/class="card-word">/);
+    expect(html).not.toContain("card-hint-label");
+    expect(html).not.toContain("You are the imposter.");
+  });
+
+  it("keeps the red imposter front and large role line when hints are off", () => {
+    const g = startedGame(false);
+    const index = playerIndexWithRole(g, "imposter");
+    const html = renderCurrentPlayer(g, index);
+    expect(html).toMatch(/class="card-face front is-imposter\b/);
+    expect(html).toContain('class="card-role">You are the imposter.</p>');
+    expect(html).not.toContain("Hint:");
+    expect(html).not.toContain("card-hint-label");
+    expect(html).not.toContain("card-hint-word");
+  });
+
+  it("styles the imposter type larger than Hint: and the hint word, on a solid red front", () => {
+    expect(appCss).toMatch(/\.card-role\s*\{[^}]*font-family:\s*Fraunces/);
+    expect(appCss).toMatch(/\.card-role\s*\{[^}]*clamp\(2rem,\s*9vw,\s*3rem\)/);
+    expect(appCss).toMatch(/\.card-role\s*\{[^}]*font-weight:\s*800/);
+    expect(appCss).toMatch(/\.card-role\s*\{[^}]*word-break:\s*break-word/);
+    expect(appCss).toMatch(/\.card-hint-label\s*\{[^}]*font-weight:\s*400/);
+    expect(appCss).toMatch(/\.card-hint-word\s*\{[^}]*clamp\(1\.25rem,\s*5vw,\s*1\.8rem\)/);
+    expect(appCss).toMatch(
+      /\.card-face\.front\.is-imposter\s*\{[^}]*background:\s*#d1263d/,
+    );
+    expect(appCss).toMatch(/\.card-kicker\s*\{[^}]*font-weight:\s*700/);
+    expect(appCss).toMatch(/\.card-word\s*\{[^}]*clamp\(2rem,\s*9vw,\s*3rem\)/);
+    expect(appCss).not.toMatch(/\.card-word,\s*\n?\s*\.card-hint-word/);
   });
 });
 
