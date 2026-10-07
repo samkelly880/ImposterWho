@@ -3,6 +3,8 @@ import { bumpImposterCount, setAutoImposters, syncImposterCount } from "./impost
 import { activeNames } from "./names.ts";
 import { pack } from "./pack.ts";
 import {
+  afterCardHold,
+  afterCardRelease,
   afterCardTap,
   canPressNext,
   canSubmitVote,
@@ -179,6 +181,16 @@ export class GameController {
     }
     if (this.state.screen !== "flip") return;
     this.state = { ...this.state, flip: afterCardTap(this.state.flip) };
+  }
+
+  showCard(): void {
+    if (this.state.screen !== "flip") return;
+    this.state = { ...this.state, flip: afterCardHold(this.state.flip) };
+  }
+
+  hideCard(): void {
+    if (this.state.screen !== "flip") return;
+    this.state = { ...this.state, flip: afterCardRelease(this.state.flip) };
   }
 
   nextPlayer(): boolean {

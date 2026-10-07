@@ -318,6 +318,38 @@ export function afterCardTap(flip: { playerIndex: number; faceDown: boolean; has
   };
 }
 
+export function afterCardHold(flip: {
+  playerIndex: number;
+  faceDown: boolean;
+  hasFlipped: boolean;
+}): {
+  playerIndex: number;
+  faceDown: boolean;
+  hasFlipped: boolean;
+} {
+  return {
+    playerIndex: flip.playerIndex,
+    faceDown: false,
+    hasFlipped: true,
+  };
+}
+
+export function afterCardRelease(flip: {
+  playerIndex: number;
+  faceDown: boolean;
+  hasFlipped: boolean;
+}): {
+  playerIndex: number;
+  faceDown: boolean;
+  hasFlipped: boolean;
+} {
+  return {
+    playerIndex: flip.playerIndex,
+    faceDown: true,
+    hasFlipped: flip.hasFlipped,
+  };
+}
+
 export function resetFlip(playerIndex: number): {
   playerIndex: number;
   faceDown: boolean;

@@ -144,7 +144,7 @@ function doubleAgentGame(names = ["Ada", "Bob", "Cara", "Dee"]): GameController 
 }
 
 describe("flip markup", () => {
-  it("shows the player name, tap prompt, and a disabled Next", () => {
+  it("shows the player name, hold prompt, and a disabled Next", () => {
     const g = game();
     g.setName(0, "Ada");
     g.setName(1, "Bob");
@@ -152,7 +152,9 @@ describe("flip markup", () => {
     g.startRound();
     const html = renderApp(g);
     expect(html).toContain("Ada");
-    expect(html).toContain("Tap to flip.");
+    expect(html).toContain("Hold to show.");
+    expect(html).toContain('aria-label="Hold to show your card"');
+    expect(html).toContain('aria-pressed="false"');
     expect(html).toContain('aria-disabled="true"');
     const role = g.state.round!.assignments[0]!.role;
     if (role === "imposter") {
@@ -166,6 +168,7 @@ describe("flip markup", () => {
   it("hides the secret face in CSS until the card is flipped", () => {
     expect(appCss).toMatch(/\.card:not\(\.is-flipped\)\s+\.card-face\.front\s*\{[^}]*visibility:\s*hidden/);
     expect(appCss).toMatch(/\.card-face\.front\s*\{[^}]*translateZ/);
+    expect(appCss).toMatch(/\.screen\.flip\s+\.card\s*\{[^}]*touch-action:\s*none/);
   });
 
   it("lets the revealed word name the face-up card", () => {
@@ -174,13 +177,14 @@ describe("flip markup", () => {
     g.setName(1, "Bob");
     g.setName(2, "Cara");
     g.startRound();
-    expect(renderApp(g)).toContain('aria-label="Tap to flip"');
-    g.tapCard();
+    expect(renderApp(g)).toContain('aria-label="Hold to show your card"');
+    g.showCard();
     const html = renderApp(g);
     const flipOpen = html.match(/data-action="flip"[^>]*>/);
     expect(flipOpen).not.toBeNull();
-    expect(flipOpen![0]).not.toContain("aria-label");
-    expect(html).not.toContain('aria-label="Hide card"');
+    expect(flipOpen![0]).toContain('aria-label="Release to hide your card"');
+    expect(flipOpen![0]).toContain('aria-pressed="true"');
+    expect(html).toContain('aria-disabled="true"');
     const role = g.state.round!.assignments[0]!.role;
     if (role === "imposter") {
       expect(html).toContain("You are the imposter.");
@@ -191,15 +195,15 @@ describe("flip markup", () => {
     }
   });
 
-  it("enables Next after flip and hide", () => {
+  it("enables Next after hold and release", () => {
     const g = game();
     g.setName(0, "Ada");
     g.setName(1, "Bob");
     g.setName(2, "Cara");
     g.startRound();
-    g.tapCard();
+    g.showCard();
     expect(renderApp(g)).toContain('aria-disabled="true"');
-    g.tapCard();
+    g.hideCard();
     expect(renderApp(g)).toContain('aria-disabled="false"');
   });
 });

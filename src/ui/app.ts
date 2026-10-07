@@ -1,8 +1,23 @@
 import { GameController } from "../controller.ts";
+import { canPressNext } from "../round.ts";
 import type { TrollRuleId } from "../types.ts";
 import { TROLL_RULES } from "../types.ts";
 import { fitLineElements } from "./fit-line.ts";
-import { confirmModal, renderApp } from "./view.ts";
+import {
+  beginPointerHold,
+  endPointerHold,
+  isFlipActionTarget,
+  isHoldKey,
+  type HoldPointer,
+} from "./hold-card.ts";
+import {
+  confirmModal,
+  FLIP_HOLD_HELPER,
+  FLIP_HOLD_LABEL,
+  FLIP_PASS_HELPER,
+  FLIP_RELEASE_LABEL,
+  renderApp,
+} from "./view.ts";
 
 function isTrollRule(value: string): value is TrollRuleId {
   return (TROLL_RULES as string[]).includes(value);
@@ -118,6 +133,36 @@ export function paint(
   applyFocusSnapshot(host, snapshot);
   focusQuitDialog(host, snapshot);
   fitLineElements(root);
+}
+
+function setAriaHidden(el: unknown, hidden: boolean): void {
+  if (!(el instanceof HTMLElement)) return;
+  if (hidden) el.setAttribute("aria-hidden", "true");
+  else el.removeAttribute("aria-hidden");
+}
+
+export function syncFlipPresentation(root: HTMLElement | RenderRoot, game: GameController): void {
+  const card = root.querySelector("[data-action='flip']");
+  if (!(card instanceof HTMLElement) || game.state.screen !== "flip") {
+    paint(root, game, typeof document !== "undefined" ? document.activeElement : null);
+    return;
+  }
+  const faceDown = game.state.flip.faceDown;
+  const nextOn = canPressNext(game.state.flip.hasFlipped, faceDown);
+  card.classList.toggle("is-flipped", !faceDown);
+  card.setAttribute("aria-pressed", faceDown ? "false" : "true");
+  card.setAttribute("aria-label", faceDown ? FLIP_HOLD_LABEL : FLIP_RELEASE_LABEL);
+  setAriaHidden(card.querySelector(".card-face.back"), !faceDown);
+  setAriaHidden(card.querySelector(".card-face.front"), faceDown);
+  const next = root.querySelector("[data-action='next']");
+  if (next instanceof HTMLButtonElement) {
+    next.disabled = !nextOn;
+    next.setAttribute("aria-disabled", nextOn ? "false" : "true");
+  }
+  const helper = root.querySelector(".screen.flip .helper");
+  if (helper instanceof HTMLElement) {
+    helper.textContent = nextOn ? FLIP_PASS_HELPER : FLIP_HOLD_HELPER;
+  }
 }
 
 export function ejectSceneKey(game: GameController): string | null {
@@ -256,12 +301,96 @@ export function mount(root: HTMLElement, game: GameController): void {
     redraw();
   });
 
+  let heldPointer: HoldPointer = null;
+  let keyHeld = false;
+
+  const reveal = (): void => {
+    if (game.state.screen !== "flip") return;
+    game.showCard();
+    syncFlipPresentation(root, game);
+  };
+
+  const conceal = (): void => {
+    const pointerId = heldPointer;
+    heldPointer = null;
+    keyHeld = false;
+    if (pointerId !== null) {
+      const card = root.querySelector(".screen.flip [data-action='flip']");
+      if (card instanceof HTMLElement && typeof card.hasPointerCapture === "function") {
+        try {
+          if (card.hasPointerCapture(pointerId)) card.releasePointerCapture(pointerId);
+        } catch {
+          // The pointer may already be released.
+        }
+      }
+    }
+    if (game.state.screen !== "flip" || game.state.flip.faceDown) return;
+    game.hideCard();
+    syncFlipPresentation(root, game);
+  };
+
+  root.addEventListener("pointerdown", (event) => {
+    if (game.state.screen !== "flip") return;
+    if (!isFlipActionTarget(event.target)) return;
+    const next = beginPointerHold(heldPointer, event.button, event.pointerId);
+    if (next === heldPointer) return;
+    event.preventDefault();
+    heldPointer = next;
+    const card = event.target instanceof Element
+      ? event.target.closest("[data-action='flip']")
+      : null;
+    if (card instanceof HTMLElement) {
+      try {
+        card.setPointerCapture(event.pointerId);
+      } catch {
+        // Window pointerup still hides if capture is unavailable.
+      }
+    }
+    reveal();
+  });
+
+  const onPointerEnd = (event: PointerEvent): void => {
+    const next = endPointerHold(heldPointer, event.pointerId);
+    if (next === heldPointer) return;
+    conceal();
+  };
+
+  root.addEventListener("pointerup", onPointerEnd);
+  root.addEventListener("pointercancel", onPointerEnd);
+  root.addEventListener("lostpointercapture", onPointerEnd);
+  window.addEventListener("pointerup", onPointerEnd);
+  window.addEventListener("pointercancel", onPointerEnd);
+  window.addEventListener("blur", conceal);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) conceal();
+  });
+
+  root.addEventListener("contextmenu", (event) => {
+    if (game.state.screen !== "flip") return;
+    if (!isFlipActionTarget(event.target)) return;
+    event.preventDefault();
+  });
+
   root.addEventListener("keydown", (event) => {
-    if (event.key !== "Tab") return;
-    const dialog = root.querySelector('[role="dialog"]');
-    if (!(dialog instanceof HTMLElement)) return;
-    const buttons = [...dialog.querySelectorAll("button")];
-    trapDialogTab(event, buttons, document.activeElement);
+    if (event.key === "Tab") {
+      const dialog = root.querySelector('[role="dialog"]');
+      if (!(dialog instanceof HTMLElement)) return;
+      const buttons = [...dialog.querySelectorAll("button")];
+      trapDialogTab(event, buttons, document.activeElement);
+      return;
+    }
+    if (game.state.screen !== "flip") return;
+    if (!isHoldKey(event.key) || !isFlipActionTarget(event.target)) return;
+    event.preventDefault();
+    if (event.repeat || keyHeld || heldPointer !== null) return;
+    keyHeld = true;
+    reveal();
+  });
+
+  window.addEventListener("keyup", (event) => {
+    if (!isHoldKey(event.key) || !keyHeld) return;
+    event.preventDefault();
+    conceal();
   });
 
   root.addEventListener("click", (event) => {
@@ -283,7 +412,10 @@ export function mount(root: HTMLElement, game: GameController): void {
     if (action === "imposters-inc") game.bumpImposters(1);
     if (action === "imposters-dec") game.bumpImposters(-1);
     if (action === "start") game.startRound();
-    if (action === "flip") game.tapCard();
+    if (action === "flip") {
+      if (game.state.screen === "flip") return;
+      game.tapCard();
+    }
     if (action === "next") game.nextPlayer();
     if (action === "new-round") game.newRound();
     if (action === "setup") game.backToSetup();

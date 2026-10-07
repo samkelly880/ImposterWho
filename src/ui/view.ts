@@ -215,6 +215,12 @@ function assignmentCopy(
   `;
 }
 
+export const FLIP_HOLD_PROMPT = "Hold to show.";
+export const FLIP_HOLD_HELPER = "Hold the card to peek, then let go to continue.";
+export const FLIP_PASS_HELPER = "Pass the device to the next player.";
+export const FLIP_HOLD_LABEL = "Hold to show your card";
+export const FLIP_RELEASE_LABEL = "Release to hide your card";
+
 function recapRoleLabel(role: Role): string {
   if (role === "imposter") return "Imposter";
   if (role === "doubleAgent") return "Double Agent";
@@ -229,23 +235,24 @@ function flipView(state: AppState): string {
   const skin = skinForSlot(state.flip.playerIndex);
   const frontRole = assignment.role === "imposter" ? " is-imposter" : "";
   const nextOn = canPressNext(state.flip.hasFlipped, state.flip.faceDown);
-  const helper = nextOn
-    ? "Pass the device to the next player."
-    : "Flip your card, then hide it to continue.";
+  const helper = nextOn ? FLIP_PASS_HELPER : FLIP_HOLD_HELPER;
+  const cardLabel = state.flip.faceDown ? FLIP_HOLD_LABEL : FLIP_RELEASE_LABEL;
   return `
     <section class="screen flip"${state.confirmQuit ? " inert" : ""}>
       ${quitButton()}
       <div class="card-scene">
         <button
+          id="role-card"
           class="card ${state.flip.faceDown ? "" : "is-flipped"}"
           type="button"
           data-action="flip"
-          ${state.flip.faceDown ? 'aria-label="Tap to flip"' : ""}
+          aria-label="${cardLabel}"
+          aria-pressed="${state.flip.faceDown ? "false" : "true"}"
         >
           <div class="card-inner">
             <div class="card-face back skin skin-${skin.color} pattern-${skin.pattern} skin-ink-${skin.ink}" ${state.flip.faceDown ? "" : "aria-hidden=\"true\""}>
               <p class="card-name fit-line">${escapeHtml(assignment.name)}</p>
-              <p class="card-prompt">Tap to flip.</p>
+              <p class="card-prompt">${FLIP_HOLD_PROMPT}</p>
             </div>
             <div class="card-face front${frontRole} skin skin-${skin.color} pattern-${skin.pattern} skin-ink-${skin.ink}" ${state.flip.faceDown ? "aria-hidden=\"true\"" : ""}>
               ${assignmentCopy(assignment, round.secretWord, state.setup.hintsEnabled, round.assignments)}

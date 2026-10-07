@@ -4,6 +4,8 @@ import { emptyDeck, pickSecretWord } from "./deck.ts";
 import { allHintsInCategory, categoryById, pack, wordEntry } from "./pack.ts";
 import { createQueueRandom } from "./rng.ts";
 import {
+  afterCardHold,
+  afterCardRelease,
   afterCardTap,
   armedTrollRules,
   assignRoles,
@@ -389,6 +391,24 @@ describe("flip next gating", () => {
     flip = afterCardTap(flip);
     expect(flip.faceDown).toBe(true);
     expect(canPressNext(flip.hasFlipped, flip.faceDown)).toBe(true);
+  });
+
+  it("records a look on hold and allows release-then-next", () => {
+    let flip = resetFlip(0);
+    flip = afterCardHold(flip);
+    expect(flip.faceDown).toBe(false);
+    expect(flip.hasFlipped).toBe(true);
+    expect(canPressNext(flip.hasFlipped, flip.faceDown)).toBe(false);
+    flip = afterCardRelease(flip);
+    expect(flip.faceDown).toBe(true);
+    expect(canPressNext(flip.hasFlipped, flip.faceDown)).toBe(true);
+  });
+
+  it("keeps Next gated if the card is released without a hold", () => {
+    const flip = afterCardRelease(resetFlip(0));
+    expect(flip.faceDown).toBe(true);
+    expect(flip.hasFlipped).toBe(false);
+    expect(canPressNext(flip.hasFlipped, flip.faceDown)).toBe(false);
   });
 
   it("lets a vote submit after a look and a pick, even while face up", () => {
