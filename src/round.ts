@@ -23,6 +23,26 @@ import {
 } from "./types.ts";
 import { activeNames } from "./names.ts";
 
+export function isImposterTeam(role: Role): boolean {
+  return role === "imposter" || role === "doubleAgent";
+}
+
+export function seesSecretWord(role: Role): boolean {
+  return role === "civilian" || role === "doubleAgent";
+}
+
+export function formatImposterLine(names: readonly string[]): string {
+  if (names.length <= 1) {
+    return `The imposter is ${names[0] ?? ""}.`;
+  }
+  if (names.length === 2) {
+    return `The imposters are ${names[0]} and ${names[1]}.`;
+  }
+  const last = names[names.length - 1];
+  const head = names.slice(0, -1).join(", ");
+  return `The imposters are ${head}, and ${last}.`;
+}
+
 export function armedTrollRules(trollEnabled: boolean, rules: TrollRules): TrollRuleId[] {
   if (!trollEnabled) return [];
   return TROLL_RULES.filter((id) => rules[id]);
@@ -124,7 +144,7 @@ export function dealRound(input: {
 
   let deck = deckForCategories(input.deck, input.setup.enabledCategoryIds);
   const categoryId = pickOne(input.setup.enabledCategoryIds, random);
-  const trollRule = rollTroll(
+  let trollRule = rollTroll(
     input.setup.trollEnabled,
     input.setup.trollRules,
     random,
@@ -136,9 +156,20 @@ export function dealRound(input: {
     random,
   );
 
-  const hasCivilian = roles.includes("civilian");
+  if (trollRule === "doubleAgent") {
+    const civilianIndexes = roles.flatMap((role, index) =>
+      role === "civilian" ? [index] : [],
+    );
+    if (civilianIndexes.length < 2) {
+      trollRule = null;
+    } else {
+      const chosen = civilianIndexes[pickIndex(civilianIndexes.length, random)];
+      if (chosen !== undefined) roles[chosen] = "doubleAgent";
+    }
+  }
+
   let secretWord: string | null = null;
-  if (hasCivilian) {
+  if (roles.some(seesSecretWord)) {
     const picked = pickSecretWord(categoryId, deck, input.pack, random);
     secretWord = picked.word;
     deck = picked.deck;
@@ -179,6 +210,7 @@ export function trollRecapLine(rule: TrollRuleId | null): string | null {
   if (rule === "reverse") return "This round was a Reverse round.";
   if (rule === "allImposters") return "This round everybody was the imposter.";
   if (rule === "noImposters") return "This round there were no imposters.";
+  if (rule === "doubleAgent") return "This round had a Double Agent.";
   return null;
 }
 

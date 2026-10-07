@@ -48,8 +48,15 @@ function parseTrollRules(value: unknown): TrollRules | null {
     allImposters: true,
     noImposters: true,
     reverse: true,
+    doubleAgent: false,
   };
   for (const id of TROLL_RULES) {
+    if (id === "doubleAgent") {
+      if (!(id in value)) continue;
+      if (typeof value[id] !== "boolean") return null;
+      rules[id] = value[id];
+      continue;
+    }
     if (typeof value[id] !== "boolean") return null;
     rules[id] = value[id];
   }

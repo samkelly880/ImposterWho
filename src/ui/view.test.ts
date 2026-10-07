@@ -36,11 +36,15 @@ describe("setup markup", () => {
   it("shows troll sub-rules only after Troll is enabled", () => {
     const g = game();
     expect(renderApp(g)).not.toContain("All Imposters");
+    expect(renderApp(g)).not.toContain("Double Agent");
     g.setTroll(true);
     const html = renderApp(g);
     expect(html).toContain("All Imposters");
     expect(html).toContain("No Imposters");
     expect(html).toContain("Reverse");
+    expect(html).toContain("Double Agent");
+    expect(html).toMatch(/data-id="allImposters"[^>]*checked/);
+    expect(html).toMatch(/data-id="doubleAgent"(?! checked)/);
   });
 
   it("names mode switches with their visible labels", () => {
@@ -78,10 +82,29 @@ function renderCurrentPlayer(g: GameController, index: number): string {
   return renderApp(g);
 }
 
-function playerIndexWithRole(g: GameController, role: "imposter" | "civilian"): number {
+function playerIndexWithRole(
+  g: GameController,
+  role: "imposter" | "civilian" | "doubleAgent",
+): number {
   const index = g.state.round!.assignments.findIndex((assignment) => assignment.role === role);
   expect(index).toBeGreaterThan(-1);
   return index;
+}
+
+function armDoubleAgentOnly(g: GameController): void {
+  g.setTroll(true);
+  g.setTrollRule("allImposters", false);
+  g.setTrollRule("noImposters", false);
+  g.setTrollRule("reverse", false);
+  g.setTrollRule("doubleAgent", true);
+}
+
+function doubleAgentGame(names = ["Ada", "Bob", "Cara", "Dee"]): GameController {
+  const g = game();
+  names.forEach((name, index) => g.setName(index, name));
+  armDoubleAgentOnly(g);
+  g.startRound();
+  return g;
 }
 
 describe("flip markup", () => {
@@ -169,6 +192,21 @@ describe("start and recap markup", () => {
     expect(recap).not.toContain("Food");
     expect(recap).toMatch(/Imposter|Civilian/);
   });
+
+  it("does not mention the double agent on the public start screen", () => {
+    const g = doubleAgentGame();
+    expect(g.state.round?.trollRule).toBe("doubleAgent");
+    for (let i = 0; i < g.state.round!.assignments.length; i++) {
+      g.tapCard();
+      g.tapCard();
+      g.nextPlayer();
+    }
+    const html = renderApp(g);
+    expect(html).toContain("starts.");
+    expect(html).not.toContain("Double Agent");
+    expect(html).not.toContain("double agent");
+    expect(html).not.toContain("This round had a Double Agent.");
+  });
 });
 
 describe("imposter flip-card type", () => {
@@ -222,6 +260,103 @@ describe("imposter flip-card type", () => {
     expect(appCss).toMatch(/\.card-kicker\s*\{[^}]*font-weight:\s*700/);
     expect(appCss).toMatch(/\.card-word\s*\{[^}]*clamp\(2rem,\s*9vw,\s*3rem\)/);
     expect(appCss).not.toMatch(/\.card-word,\s*\n?\s*\.card-hint-word/);
+  });
+});
+
+describe("double agent flip and recap", () => {
+  it("shows the word, role, and imposter names on a civilian-looking card", () => {
+    const g = doubleAgentGame();
+    const index = playerIndexWithRole(g, "doubleAgent");
+    const da = g.state.round!.assignments[index]!;
+    const imposters = g.state.round!.assignments
+      .filter((assignment) => assignment.role === "imposter")
+      .map((assignment) => assignment.name);
+    expect(da.hint).toBe(null);
+    expect(imposters).toEqual(["Bob"]);
+    const html = renderCurrentPlayer(g, index);
+    expect(html).not.toMatch(/class="card-face front[^"]*is-imposter/);
+    expect(html).toContain('class="card-kicker">The word is</p>');
+    expect(html).toMatch(/class="card-word fit-line">/);
+    expect(html).toContain(g.state.round!.secretWord!);
+    expect(html).toContain('class="card-da-role">You are the double agent.</p>');
+    expect(html).toContain('class="card-da-intel fit-line">The imposter is Bob.</p>');
+    expect(html).not.toContain("You are the imposter.");
+    expect(html).not.toContain("Hint:");
+    expect(html).not.toContain("card-hint-label");
+    expect(html).not.toMatch(/class="card-da-role[^"]*fit-line/);
+  });
+
+  it("keeps civilian and imposter cards free of double-agent intel", () => {
+    const g = doubleAgentGame();
+    const civilianHtml = renderCurrentPlayer(g, playerIndexWithRole(g, "civilian"));
+    expect(civilianHtml).toContain('class="card-kicker">The word is</p>');
+    expect(civilianHtml).not.toContain("You are the double agent.");
+    expect(civilianHtml).not.toContain("The imposter is");
+    expect(civilianHtml).not.toContain("card-da-role");
+    expect(civilianHtml).not.toContain("You are the imposter.");
+
+    const imposterGame = doubleAgentGame();
+    const imposterHtml = renderCurrentPlayer(
+      imposterGame,
+      playerIndexWithRole(imposterGame, "imposter"),
+    );
+    expect(imposterHtml).toContain("You are the imposter.");
+    expect(imposterHtml).toMatch(/class="card-face front is-imposter\b/);
+    expect(imposterHtml).not.toContain("You are the double agent.");
+    expect(imposterHtml).not.toContain("The imposter is");
+    expect(imposterHtml).not.toContain("card-da-intel");
+  });
+
+  it("names two imposters in player order on the double-agent card", () => {
+    const g = game();
+    g.setName(0, "Ada");
+    g.setName(1, "Bob");
+    g.setName(2, "Cara");
+    g.setName(3, "Dee");
+    g.addPlayer();
+    g.setName(4, "Eve");
+    g.setAuto(false);
+    g.bumpImposters(1);
+    armDoubleAgentOnly(g);
+    g.startRound();
+    expect(g.state.setup.imposterCount).toBe(2);
+    expect(g.state.round?.trollRule).toBe("doubleAgent");
+    const imposters = g.state.round!.assignments
+      .filter((assignment) => assignment.role === "imposter")
+      .map((assignment) => assignment.name);
+    expect(imposters).toEqual(["Bob", "Cara"]);
+    const html = renderCurrentPlayer(g, playerIndexWithRole(g, "doubleAgent"));
+    expect(html).toContain("The imposters are Bob and Cara.");
+  });
+
+  it("reveals the double agent and team line only on recap", () => {
+    const g = doubleAgentGame();
+    const daName = g.state.round!.assignments.find((a) => a.role === "doubleAgent")!.name;
+    for (let i = 0; i < g.state.round!.assignments.length; i++) {
+      g.tapCard();
+      g.tapCard();
+      g.nextPlayer();
+    }
+    g.openRecap();
+    const recap = renderApp(g);
+    expect(recap).toContain("This round had a Double Agent.");
+    expect(recap).toContain("The double agent was on the imposters' team.");
+    expect(recap).toMatch(
+      new RegExp(`<span>${daName}</span>\\s*<span>Double Agent</span>`),
+    );
+    expect(recap).toContain("Imposter");
+    expect(recap).toContain("Civilian");
+  });
+
+  it("styles the double-agent role as UI type and the intel line like a hint word", () => {
+    expect(appCss).toMatch(/\.card-da-role\s*\{[^}]*font-weight:\s*400/);
+    expect(appCss).toMatch(/\.card-da-role\s*\{[^}]*font-size:\s*1rem/);
+    expect(appCss).toMatch(/\.card-da-intel\s*\{[^}]*font-family:\s*Fraunces/);
+    expect(appCss).toMatch(/\.card-da-intel\s*\{[^}]*clamp\(1\.25rem,\s*5vw,\s*1\.8rem\)/);
+    expect(appCss).toMatch(/\.card-da-intel\s*\{[^}]*font-weight:\s*800/);
+    expect(appCss).toMatch(/\.card-da-intel\s*\{[^}]*var\(--fit-line-bleed/);
+    expect(appCss).not.toMatch(/\.card-da-role\s*\{[^}]*word-break/);
+    expect(appCss).not.toMatch(/\.card-da-intel\s*\{[^}]*word-break/);
   });
 });
 
@@ -295,6 +430,7 @@ describe("fit-line markup and CSS", () => {
     expect(appCss).toMatch(/\.card-name\s*\{[^}]*var\(--fit-line-bleed/);
     expect(appCss).toMatch(/\.card-word\s*\{[^}]*var\(--fit-line-bleed/);
     expect(appCss).toMatch(/\.card-hint-word\s*\{[^}]*var\(--fit-line-bleed/);
+    expect(appCss).toMatch(/\.card-da-intel\s*\{[^}]*var\(--fit-line-bleed/);
     expect(appCss).toMatch(/\.start-name\s*\{[^}]*var\(--fit-line-bleed/);
     expect(appCss).toMatch(/\.recap-word\s*\{[^}]*var\(--fit-line-bleed/);
   });

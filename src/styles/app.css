@@ -427,6 +427,20 @@ input[type="checkbox"] {
   margin: calc(12px - var(--fit-line-bleed, 0px)) 0 calc(0px - var(--fit-line-bleed, 0px));
 }
 
+.card-da-role {
+  font-size: 1rem;
+  font-weight: 400;
+  margin: 16px 0 0;
+}
+
+.card-da-intel {
+  font-family: Fraunces, Georgia, serif;
+  font-size: clamp(1.25rem, 5vw, 1.8rem);
+  font-weight: 800;
+  line-height: 1;
+  margin: calc(12px - var(--fit-line-bleed, 0px)) 0 calc(0px - var(--fit-line-bleed, 0px));
+}
+
 .card-face.front.is-imposter {
   --fill: #d1263d;
   --ink: #fff;

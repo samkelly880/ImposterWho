@@ -84,6 +84,7 @@ describe("GameController flow", () => {
     expect(game.state.setup.trollRules.reverse).toBe(false);
     expect(game.state.setup.trollRules.allImposters).toBe(false);
     expect(game.state.setup.trollRules.noImposters).toBe(true);
+    expect(game.state.setup.trollRules.doubleAgent).toBe(false);
   });
 
   it("persists disarmed troll sub-rules after Troll is re-enabled", () => {
@@ -97,6 +98,18 @@ describe("GameController flow", () => {
     expect(again.state.setup.trollEnabled).toBe(true);
     expect(again.state.setup.trollRules.allImposters).toBe(false);
     expect(again.state.setup.trollRules.reverse).toBe(true);
+    expect(again.state.setup.trollRules.doubleAgent).toBe(false);
+  });
+
+  it("persists Double Agent once it is turned on", () => {
+    const storage = memoryStorage();
+    const game = new GameController({ storage, random: () => 0 });
+    expect(game.state.setup.trollRules.doubleAgent).toBe(false);
+    game.setTroll(true);
+    game.setTrollRule("doubleAgent", true);
+    const again = new GameController({ storage, random: () => 0 });
+    expect(again.state.setup.trollEnabled).toBe(true);
+    expect(again.state.setup.trollRules.doubleAgent).toBe(true);
   });
 
   it("restores setup from storage", () => {
