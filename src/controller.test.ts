@@ -40,6 +40,28 @@ describe("GameController flow", () => {
     expect(game.state.flip.hasFlipped).toBe(false);
   });
 
+  it("gates hold-to-peek Next until the flip animation has settled", () => {
+    const game = seededController();
+    game.setName(0, "Ada");
+    game.setName(1, "Bob");
+    game.setName(2, "Cara");
+    game.startRound();
+    game.showCard();
+    expect(game.state.flip.faceDown).toBe(false);
+    expect(game.state.flip.hasFlipped).toBe(false);
+    game.hideCard();
+    expect(game.nextPlayer()).toBe(false);
+    expect(game.state.flip.playerIndex).toBe(0);
+    game.showCard();
+    expect(game.confirmCardSeen()).toBe(true);
+    expect(game.state.flip.hasFlipped).toBe(true);
+    expect(game.nextPlayer()).toBe(false);
+    game.hideCard();
+    expect(game.nextPlayer()).toBe(true);
+    expect(game.state.flip.playerIndex).toBe(1);
+    expect(game.state.flip.hasFlipped).toBe(false);
+  });
+
   it("moves to the start screen after the last Next", () => {
     const game = seededController();
     game.setName(0, "Ada");

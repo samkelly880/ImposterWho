@@ -7,6 +7,7 @@ import {
   afterCardHold,
   afterCardRelease,
   afterCardTap,
+  afterFlipSettled,
   armedTrollRules,
   assignRoles,
   canPressNext,
@@ -393,15 +394,36 @@ describe("flip next gating", () => {
     expect(canPressNext(flip.hasFlipped, flip.faceDown)).toBe(true);
   });
 
-  it("records a look on hold and allows release-then-next", () => {
+  it("records a look only after the flip settles, then allows release-then-next", () => {
     let flip = resetFlip(0);
     flip = afterCardHold(flip);
+    expect(flip.faceDown).toBe(false);
+    expect(flip.hasFlipped).toBe(false);
+    expect(canPressNext(flip.hasFlipped, flip.faceDown)).toBe(false);
+    flip = afterFlipSettled(flip);
     expect(flip.faceDown).toBe(false);
     expect(flip.hasFlipped).toBe(true);
     expect(canPressNext(flip.hasFlipped, flip.faceDown)).toBe(false);
     flip = afterCardRelease(flip);
     expect(flip.faceDown).toBe(true);
     expect(canPressNext(flip.hasFlipped, flip.faceDown)).toBe(true);
+  });
+
+  it("keeps Next gated when the card is released before the flip settles", () => {
+    let flip = resetFlip(0);
+    flip = afterCardHold(flip);
+    expect(flip.hasFlipped).toBe(false);
+    flip = afterCardRelease(flip);
+    expect(flip.faceDown).toBe(true);
+    expect(flip.hasFlipped).toBe(false);
+    expect(canPressNext(flip.hasFlipped, flip.faceDown)).toBe(false);
+  });
+
+  it("ignores a settle while the card is face-down", () => {
+    const flip = afterFlipSettled(resetFlip(0));
+    expect(flip.faceDown).toBe(true);
+    expect(flip.hasFlipped).toBe(false);
+    expect(canPressNext(flip.hasFlipped, flip.faceDown)).toBe(false);
   });
 
   it("keeps Next gated if the card is released without a hold", () => {

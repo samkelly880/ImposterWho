@@ -197,13 +197,18 @@ describe("flip markup", () => {
     }
   });
 
-  it("enables Next after hold and release", () => {
+  it("enables Next only after the hold settles and the card is released", () => {
     const g = game();
     g.setName(0, "Ada");
     g.setName(1, "Bob");
     g.setName(2, "Cara");
     g.startRound();
     g.showCard();
+    expect(renderApp(g)).toContain('aria-disabled="true"');
+    g.hideCard();
+    expect(renderApp(g)).toContain('aria-disabled="true"');
+    g.showCard();
+    expect(g.confirmCardSeen()).toBe(true);
     expect(renderApp(g)).toContain('aria-disabled="true"');
     g.hideCard();
     expect(renderApp(g)).toContain('aria-disabled="false"');

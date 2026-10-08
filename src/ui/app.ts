@@ -207,6 +207,26 @@ function prefersReducedMotion(): boolean {
   );
 }
 
+export const FLIP_REVEAL_MS = 400;
+
+export function resolveFlipRevealMs(card?: unknown): number {
+  if (prefersReducedMotion()) return 0;
+  if (card instanceof HTMLElement && typeof globalThis.getComputedStyle === "function") {
+    const raw = globalThis
+      .getComputedStyle(card)
+      .getPropertyValue("--card-flip-ms")
+      .trim();
+    const match = raw.match(/^([\d.]+)\s*(m?s)$/);
+    if (match) {
+      const value = Number(match[1]);
+      if (Number.isFinite(value) && value >= 0) {
+        return match[2] === "s" ? value * 1000 : value;
+      }
+    }
+  }
+  return FLIP_REVEAL_MS;
+}
+
 export function mount(root: HTMLElement, game: GameController): void {
   let ejectTimer: ReturnType<typeof globalThis.setTimeout> | undefined;
   let lastEjectKey: string | null = null;
@@ -303,14 +323,37 @@ export function mount(root: HTMLElement, game: GameController): void {
 
   let heldPointer: HoldPointer = null;
   let keyHeld = false;
+  let flipSeenTimer: ReturnType<typeof globalThis.setTimeout> | undefined;
+  const clearFlipSeenTimer = (): void => {
+    if (flipSeenTimer !== undefined) {
+      globalThis.clearTimeout(flipSeenTimer);
+      flipSeenTimer = undefined;
+    }
+  };
 
   const reveal = (): void => {
     if (game.state.screen !== "flip") return;
     game.showCard();
     syncFlipPresentation(root, game);
+    clearFlipSeenTimer();
+    const playerIndex = game.state.flip.playerIndex;
+    const card = root.querySelector(".screen.flip [data-action='flip']");
+    const delay = resolveFlipRevealMs(card instanceof HTMLElement ? card : undefined);
+    if (delay <= 0) {
+      if (game.confirmCardSeen()) syncFlipPresentation(root, game);
+      return;
+    }
+    flipSeenTimer = globalThis.setTimeout(() => {
+      flipSeenTimer = undefined;
+      if (game.state.screen !== "flip") return;
+      if (game.state.flip.playerIndex !== playerIndex) return;
+      if (game.state.flip.faceDown) return;
+      if (game.confirmCardSeen()) syncFlipPresentation(root, game);
+    }, delay);
   };
 
   const conceal = (): void => {
+    clearFlipSeenTimer();
     const pointerId = heldPointer;
     heldPointer = null;
     keyHeld = false;
@@ -416,7 +459,9 @@ export function mount(root: HTMLElement, game: GameController): void {
       if (game.state.screen === "flip") return;
       game.tapCard();
     }
-    if (action === "next") game.nextPlayer();
+    if (action === "next") {
+      if (game.nextPlayer()) clearFlipSeenTimer();
+    }
     if (action === "new-round") game.newRound();
     if (action === "setup") game.backToSetup();
     if (action === "recap") game.openRecap();
