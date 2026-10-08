@@ -330,6 +330,23 @@ export function afterCardHold(flip: {
   return {
     playerIndex: flip.playerIndex,
     faceDown: false,
+    hasFlipped: flip.hasFlipped,
+  };
+}
+
+export function afterFlipSettled(flip: {
+  playerIndex: number;
+  faceDown: boolean;
+  hasFlipped: boolean;
+}): {
+  playerIndex: number;
+  faceDown: boolean;
+  hasFlipped: boolean;
+} {
+  if (flip.faceDown) return { ...flip };
+  return {
+    playerIndex: flip.playerIndex,
+    faceDown: flip.faceDown,
     hasFlipped: true,
   };
 }

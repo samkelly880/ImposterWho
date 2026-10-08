@@ -6,6 +6,7 @@ import {
   afterCardHold,
   afterCardRelease,
   afterCardTap,
+  afterFlipSettled,
   canPressNext,
   canSubmitVote,
   dealRound,
@@ -186,6 +187,15 @@ export class GameController {
   showCard(): void {
     if (this.state.screen !== "flip") return;
     this.state = { ...this.state, flip: afterCardHold(this.state.flip) };
+  }
+
+  confirmCardSeen(): boolean {
+    if (this.state.screen !== "flip") return false;
+    if (this.state.flip.faceDown) return false;
+    const settled = afterFlipSettled(this.state.flip);
+    if (settled.hasFlipped === this.state.flip.hasFlipped) return false;
+    this.state = { ...this.state, flip: settled };
+    return true;
   }
 
   hideCard(): void {
